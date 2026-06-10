@@ -27,8 +27,12 @@ export function DropZone({ fileName, onFile, onError }: DropZoneProps) {
   }
 
   async function handleSample() {
-    const blob = await createSampleImageBlob();
-    onFile(new File([blob], "sample.png", { type: "image/png" }));
+    try {
+      const blob = await createSampleImageBlob();
+      onFile(new File([blob], "sample.png", { type: "image/png" }));
+    } catch {
+      onError("Could not generate sample image");
+    }
   }
 
   const borderColor = dragging ? COLORS.accent : "oklch(72% 0.02 240 / 0.45)";
@@ -37,7 +41,16 @@ export function DropZone({ fileName, onFile, onError }: DropZoneProps) {
   return (
     <div>
       <div
+        role="button"
+        tabIndex={0}
+        aria-label="Upload an image"
         onClick={() => inputRef.current?.click()}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            if (e.key === " ") e.preventDefault();
+            inputRef.current?.click();
+          }
+        }}
         onDragOver={(e) => {
           e.preventDefault();
           setDragging(true);
@@ -69,6 +82,7 @@ export function DropZone({ fileName, onFile, onError }: DropZoneProps) {
           ref={inputRef}
           type="file"
           accept="image/*"
+          aria-label="Choose image file"
           style={{ display: "none" }}
           onChange={(e) => handleFiles(e.target.files)}
         />
