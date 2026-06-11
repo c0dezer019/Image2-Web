@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { COLORS, FONT_MONO } from "@/lib/theme";
 import type { AnsiPalette, OutputMode } from "@/lib/types";
 
@@ -87,10 +88,26 @@ interface SliderFieldProps {
 /**
  * Range slider paired with a freeform number input. The slider is clamped to
  * [min, max]; the number input has no min/max, so typing a value beyond the
- * slider's range overrides it (the slider simply pegs at its end).
+ * slider's range overrides it (the slider simply pegs at its end). Blank or
+ * negative entries are rejected and revert to the last valid value on blur.
  */
 function SliderField({ id, label, value, min, max, step, onChange }: SliderFieldProps) {
   const sliderValue = Math.min(Math.max(value, min), max);
+  const [text, setText] = useState(String(value));
+
+  useEffect(() => {
+    setText(String(value));
+  }, [value]);
+
+  function commit() {
+    const n = Number(text);
+    if (text.trim() === "" || isNaN(n) || n < 0) {
+      setText(String(value));
+      return;
+    }
+    onChange(n);
+  }
+
   return (
     <div style={{ flex: "1 1 160px" }}>
       <label htmlFor={id} style={labelStyle}>{label}</label>
@@ -109,12 +126,52 @@ function SliderField({ id, label, value, min, max, step, onChange }: SliderField
           type="number"
           aria-label={label}
           step={step}
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.currentTarget.blur();
+          }}
           style={numberInputStyle}
         />
       </div>
     </div>
+  );
+}
+
+interface BgInputProps {
+  bg: string;
+  onBgChange: (s: string) => void;
+}
+
+/** Freeform background color input. Blank entries revert to the last value on blur. */
+function BgInput({ bg, onBgChange }: BgInputProps) {
+  const [text, setText] = useState(bg);
+
+  useEffect(() => {
+    setText(bg);
+  }, [bg]);
+
+  function commit() {
+    if (text.trim() === "") {
+      setText(bg);
+      return;
+    }
+    onBgChange(text);
+  }
+
+  return (
+    <input
+      id="bg-input"
+      type="text"
+      value={text}
+      onChange={(e) => setText(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") e.currentTarget.blur();
+      }}
+      style={textInputStyle}
+    />
   );
 }
 
@@ -252,13 +309,7 @@ export function ControlsBar({
 
           <div style={{ flex: "1 1 160px" }}>
             <label htmlFor="bg-input" style={labelStyle}>Background</label>
-            <input
-              id="bg-input"
-              type="text"
-              value={bg}
-              onChange={(e) => onBgChange(e.target.value)}
-              style={textInputStyle}
-            />
+            <BgInput bg={bg} onBgChange={onBgChange} />
           </div>
 
           <div style={{ flex: "1 1 160px", display: "flex", alignItems: "flex-end" }}>
