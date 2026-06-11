@@ -48,7 +48,14 @@ def convert_ascii(
     path = _save_upload(file)
     try:
         return convert_to_ascii_grid(
-            path, width, contrast, brightness, sharpness, saturate, min_lum, img_height
+            path,
+            width=width,
+            contrast=contrast,
+            brightness=brightness,
+            sharpness=sharpness,
+            saturate=saturate,
+            min_lum=min_lum,
+            img_height=img_height,
         )
     except UnidentifiedImageError:
         raise HTTPException(status_code=422, detail="Could not read image file")
