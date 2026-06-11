@@ -173,7 +173,10 @@ export default function Home() {
           imgHeight={imgHeight}
           bg={bg}
           select={select}
-          onWidthChange={setWidth}
+          onWidthChange={(n) => {
+            if (!Number.isFinite(n)) return;
+            setWidth(Math.max(1, Math.round(n)));
+          }}
           onContrastChange={setContrast}
           onBrightnessChange={setBrightness}
           onSharpnessChange={setSharpness}
