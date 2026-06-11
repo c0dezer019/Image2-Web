@@ -5,7 +5,7 @@ import tempfile
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from PIL import UnidentifiedImageError
+from PIL import Image, UnidentifiedImageError
 
 from converters import convert_to_ansi_grid, convert_to_ascii_grid
 
@@ -19,6 +19,9 @@ app.add_middleware(
 )
 
 VALID_PALETTES = ("truecolor", "256", "bbs16")
+MAX_OUTPUT_COLS = 400
+MAX_OUTPUT_ROWS = 400
+MAX_OUTPUT_CELLS = 120_000
 
 
 @app.get("/health")
@@ -34,6 +37,23 @@ def _save_upload(file: UploadFile) -> str:
     return path
 
 
+def _estimate_rows(path: str, width: int, img_height: int, cell_aspect: float) -> int:
+    if img_height > 0:
+        return img_height
+    with Image.open(path) as img:
+        aspect = img.height / img.width
+    return max(1, round(width * aspect * cell_aspect))
+
+
+def _validate_output_size(cols: int, rows: int) -> None:
+    if (
+        cols > MAX_OUTPUT_COLS
+        or rows > MAX_OUTPUT_ROWS
+        or cols * rows > MAX_OUTPUT_CELLS
+    ):
+        raise HTTPException(status_code=422, detail="Output dimensions exceed server limits")
+
+
 @app.post("/convert/ascii")
 def convert_ascii(
     file: UploadFile = File(...),
@@ -47,6 +67,8 @@ def convert_ascii(
 ) -> dict:
     path = _save_upload(file)
     try:
+        rows = _estimate_rows(path, width, img_height, cell_aspect=0.75)
+        _validate_output_size(width, rows)
         return convert_to_ascii_grid(
             path,
             width=width,
@@ -78,6 +100,8 @@ def convert_ansi(
         raise HTTPException(status_code=422, detail="Invalid palette")
     path = _save_upload(file)
     try:
+        rows = _estimate_rows(path, width, 0, cell_aspect=1.0) // 2
+        _validate_output_size(width, rows)
         return convert_to_ansi_grid(
             path,
             width=width,
