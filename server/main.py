@@ -13,7 +13,11 @@ app = FastAPI(title="image2 server")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://image2-web-seven.vercel.app", "http://localhost:3000"],
+    allow_origins=[
+        "https://image2-web-seven.vercel.app",
+        "https://image2-web.theappfoundry.tech",
+        "http://localhost:3000",
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
