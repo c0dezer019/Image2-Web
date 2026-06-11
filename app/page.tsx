@@ -43,7 +43,8 @@ export default function Home() {
         });
     }, 250);
     return () => clearTimeout(timer);
-  }, [file, mode, width, contrast, brightness, fontSize, palette]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fontSize is render-only, not sent to backend
+  }, [file, mode, width, contrast, brightness, palette]);
 
   useEffect(() => {
     if (!result || !canvasRef.current) return;
