@@ -46,13 +46,14 @@ def _estimate_rows(path: str, width: int, img_height: int, cell_aspect: float) -
 
 
 def _validate_output_size(cols: int, rows: int) -> None:
+    if cols < 1 or rows < 1:
+        raise HTTPException(status_code=422, detail="Output dimensions exceed server limits")
     if (
         cols > MAX_OUTPUT_COLS
         or rows > MAX_OUTPUT_ROWS
         or cols * rows > MAX_OUTPUT_CELLS
     ):
         raise HTTPException(status_code=422, detail="Output dimensions exceed server limits")
-
 
 @app.post("/convert/ascii")
 def convert_ascii(
