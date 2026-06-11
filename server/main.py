@@ -79,7 +79,14 @@ def convert_ansi(
     path = _save_upload(file)
     try:
         return convert_to_ansi_grid(
-            path, width, contrast, brightness, palette, sharpness, saturate, min_lum
+            path,
+            width=width,
+            contrast=contrast,
+            brightness=brightness,
+            palette=palette,
+            sharpness=sharpness,
+            saturate=saturate,
+            min_lum=min_lum,
         )
     except UnidentifiedImageError:
         raise HTTPException(status_code=422, detail="Could not read image file")
