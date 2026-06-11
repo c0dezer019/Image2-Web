@@ -23,11 +23,10 @@ def convert_to_ascii_grid(
 ) -> dict:
     img = load_and_enhance(path, contrast, sharpness, brightness, saturate)
     if img_height > 0:
-        resample = getattr(
-            getattr(Image, "Resampling", None),
-            "LANCZOS",
-            getattr(Image, "LANCZOS", Image.BICUBIC),
-        )
+        try:
+            resample = Image.Resampling.LANCZOS
+        except AttributeError:
+            resample = getattr(Image, "LANCZOS", Image.BICUBIC)
         img = img.resize((width, img_height), resample=resample).convert("RGB")
     else:
         img = resize_for(img, width, cell_aspect=0.75)
