@@ -74,3 +74,53 @@ def test_ansi_grid_palette_changes_ansi_text_only(sample_image_path):
 
     assert truecolor["ansiText"] != bbs16["ansiText"]
     assert truecolor["cells"] == bbs16["cells"]
+
+
+def test_ascii_grid_img_height_overrides_aspect(sample_image_path):
+    result = convert_to_ascii_grid(
+        sample_image_path, width=20, contrast=1.5, brightness=1.0, img_height=5
+    )
+    assert result["cols"] == 20
+    assert result["rows"] == 5
+    assert len(result["cells"]) == 5
+
+
+def test_ascii_grid_min_lum_lifts_dark_pixels(sample_image_path):
+    base = convert_to_ascii_grid(
+        sample_image_path, width=20, contrast=1.5, brightness=1.0, min_lum=0.0
+    )
+    lifted = convert_to_ascii_grid(
+        sample_image_path, width=20, contrast=1.5, brightness=1.0, min_lum=0.5
+    )
+    assert lifted["cells"][0][0]["r"] >= base["cells"][0][0]["r"]
+
+
+def test_ansi_grid_min_lum_changes_output(sample_image_path):
+    from converters import convert_to_ansi_grid
+
+    base = convert_to_ansi_grid(
+        sample_image_path, width=20, contrast=1.5, brightness=1.0, palette="truecolor"
+    )
+    lifted = convert_to_ansi_grid(
+        sample_image_path,
+        width=20,
+        contrast=1.5,
+        brightness=1.0,
+        palette="truecolor",
+        min_lum=0.5,
+    )
+
+    assert lifted["ansiText"] != base["ansiText"]
+    assert lifted["cells"] != base["cells"]
+
+
+def test_ascii_grid_sharpness_and_saturate_accepted(sample_image_path):
+    result = convert_to_ascii_grid(
+        sample_image_path,
+        width=20,
+        contrast=1.5,
+        brightness=1.0,
+        sharpness=1.0,
+        saturate=2.0,
+    )
+    assert result["cols"] == 20

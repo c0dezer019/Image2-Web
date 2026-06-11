@@ -5,7 +5,7 @@ import { DropZone } from "@/components/DropZone";
 import { ControlsBar } from "@/components/ControlsBar";
 import { OutputHeader } from "@/components/OutputHeader";
 import { OutputCanvas } from "@/components/OutputCanvas";
-import { COLORS, FONT_MONO } from "@/lib/theme";
+import { BG_HEX, COLORS, FONT_MONO } from "@/lib/theme";
 import { convertImage } from "@/lib/convert";
 import { drawAsciiGrid, drawAnsiGrid } from "@/lib/canvas-render";
 import { downloadCanvasPng, downloadText } from "@/lib/export";
@@ -17,8 +17,15 @@ export default function Home() {
   const [width, setWidth] = useState(100);
   const [contrast, setContrast] = useState(1.5);
   const [brightness, setBrightness] = useState(1.0);
+  const [sharpness, setSharpness] = useState(2.5);
+  const [saturate, setSaturate] = useState(1.0);
+  const [minLum, setMinLum] = useState(0.0);
   const [fontSize, setFontSize] = useState(6);
   const [palette, setPalette] = useState<AnsiPalette>("truecolor");
+  const [imgWidth, setImgWidth] = useState(0);
+  const [imgHeight, setImgHeight] = useState(0);
+  const [bg, setBg] = useState(BG_HEX);
+  const [select, setSelect] = useState(false);
   const [result, setResult] = useState<AsciiResult | AnsiResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -28,7 +35,10 @@ export default function Home() {
   useEffect(() => {
     if (!file) return;
     const id = ++requestIdRef.current;
-    const params = { mode, width, contrast, brightness, fontSize, palette };
+    const params = {
+      mode, width, contrast, brightness, sharpness, saturate, minLum,
+      fontSize, palette, imgWidth, imgHeight,
+    };
     const timer = setTimeout(() => {
       setError(null);
       convertImage(file, params)
@@ -43,19 +53,18 @@ export default function Home() {
         });
     }, 250);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- fontSize is render-only, not sent to backend
-  }, [file, mode, width, contrast, brightness, palette]);
+  }, [file, mode, width, contrast, brightness, sharpness, saturate, minLum, fontSize, palette, imgWidth, imgHeight]);
 
   useEffect(() => {
     if (!result || !canvasRef.current) return;
     const ctx = canvasRef.current.getContext("2d");
     if (!ctx) return;
     if (mode === "ascii") {
-      drawAsciiGrid(ctx, result as AsciiResult, fontSize);
+      drawAsciiGrid(ctx, result as AsciiResult, fontSize, bg, select);
     } else {
       drawAnsiGrid(ctx, result as AnsiResult, fontSize);
     }
-  }, [result, mode, fontSize]);
+  }, [result, mode, fontSize, bg, select]);
 
   const handleFile = useCallback((f: File) => {
     setFile(f);
@@ -150,13 +159,27 @@ export default function Home() {
           width={width}
           contrast={contrast}
           brightness={brightness}
+          sharpness={sharpness}
+          saturate={saturate}
+          minLum={minLum}
           fontSize={fontSize}
           palette={palette}
+          imgWidth={imgWidth}
+          imgHeight={imgHeight}
+          bg={bg}
+          select={select}
           onWidthChange={setWidth}
           onContrastChange={setContrast}
           onBrightnessChange={setBrightness}
+          onSharpnessChange={setSharpness}
+          onSaturateChange={setSaturate}
+          onMinLumChange={setMinLum}
           onFontSizeChange={setFontSize}
           onPaletteChange={setPalette}
+          onImgWidthChange={setImgWidth}
+          onImgHeightChange={setImgHeight}
+          onBgChange={setBg}
+          onSelectChange={setSelect}
         />
 
         <OutputHeader

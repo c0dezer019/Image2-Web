@@ -43,6 +43,19 @@ describe("drawAsciiGrid", () => {
     expect(ctx.fillText).toHaveBeenCalledWith("B", 0, h);
     expect(ctx.fillText).toHaveBeenCalledWith("C", w, h);
   });
+
+  it("fills the background with a custom color", () => {
+    const ctx = makeCtx();
+    drawAsciiGrid(ctx as unknown as CanvasRenderingContext2D, result, 10, "#ff0000");
+    expect(ctx.fillRect).toHaveBeenCalledTimes(1);
+  });
+
+  it("draws a row-striping overlay when select is enabled", () => {
+    const ctx = makeCtx();
+    drawAsciiGrid(ctx as unknown as CanvasRenderingContext2D, result, 10, "#070c12", true);
+    // 1 background fill + 1 stripe rect per row
+    expect(ctx.fillRect).toHaveBeenCalledTimes(1 + result.rows);
+  });
 });
 
 describe("drawAnsiGrid", () => {

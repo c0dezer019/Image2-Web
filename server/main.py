@@ -40,10 +40,16 @@ def convert_ascii(
     width: int = Form(100),
     contrast: float = Form(1.5),
     brightness: float = Form(1.0),
+    sharpness: float = Form(2.5),
+    saturate: float = Form(1.0),
+    min_lum: float = Form(0.0),
+    img_height: int = Form(0),
 ) -> dict:
     path = _save_upload(file)
     try:
-        return convert_to_ascii_grid(path, width, contrast, brightness)
+        return convert_to_ascii_grid(
+            path, width, contrast, brightness, sharpness, saturate, min_lum, img_height
+        )
     except UnidentifiedImageError:
         raise HTTPException(status_code=422, detail="Could not read image file")
     finally:
@@ -57,12 +63,17 @@ def convert_ansi(
     contrast: float = Form(1.5),
     brightness: float = Form(1.0),
     palette: str = Form("truecolor"),
+    sharpness: float = Form(2.5),
+    saturate: float = Form(1.0),
+    min_lum: float = Form(0.0),
 ) -> dict:
     if palette not in VALID_PALETTES:
         raise HTTPException(status_code=422, detail="Invalid palette")
     path = _save_upload(file)
     try:
-        return convert_to_ansi_grid(path, width, contrast, brightness, palette)
+        return convert_to_ansi_grid(
+            path, width, contrast, brightness, palette, sharpness, saturate, min_lum
+        )
     except UnidentifiedImageError:
         raise HTTPException(status_code=422, detail="Could not read image file")
     finally:
