@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { COLORS, FONT_MONO } from "@/lib/theme";
 import type { AnsiPalette, OutputMode } from "@/lib/types";
 
@@ -85,28 +85,53 @@ interface SliderFieldProps {
   onChange: (n: number) => void;
 }
 
-/**
- * Range slider paired with a freeform number input. The slider is clamped to
- * [min, max]; the number input has no min/max, so typing a value beyond the
- * slider's range overrides it (the slider simply pegs at its end). Blank or
- * negative entries are rejected and revert to the last valid value on blur.
- */
-function SliderField({ id, label, value, min, max, step, onChange }: SliderFieldProps) {
-  const sliderValue = Math.min(Math.max(value, min), max);
+function SliderNumberInput({
+  label,
+  step,
+  value,
+  onCommit,
+}: {
+  label: string;
+  step: number;
+  value: number;
+  onCommit: (n: number) => void;
+}) {
   const [text, setText] = useState(String(value));
-
-  useEffect(() => {
-    setText(String(value));
-  }, [value]);
 
   function commit() {
     const n = Number(text);
-    if (text.trim() === "" || isNaN(n) || n < 0) {
+    if (text.trim() === "" || !Number.isFinite(n) || n < 0) {
       setText(String(value));
       return;
     }
-    onChange(n);
+    onCommit(n);
   }
+
+  return (
+    <input
+      type="number"
+      aria-label={label}
+      step={step}
+      value={text}
+      onChange={(e) => setText(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") e.currentTarget.blur();
+      }}
+      style={numberInputStyle}
+    />
+  );
+}
+
+/**
+ * Range slider paired with a freeform number input. The slider is clamped to
+ * [min, max]; the number input has no min/max, so typing a value beyond the
+ * slider's range overrides it (the slider simply pegs at its end). Blank,
+ * negative, or non-finite entries are rejected and revert to the last valid
+ * value on blur.
+ */
+function SliderField({ id, label, value, min, max, step, onChange }: SliderFieldProps) {
+  const sliderValue = Math.min(Math.max(value, min), max);
 
   return (
     <div style={{ flex: "1 1 160px" }}>
@@ -122,17 +147,12 @@ function SliderField({ id, label, value, min, max, step, onChange }: SliderField
           onChange={(e) => onChange(Number(e.target.value))}
           style={sliderStyle()}
         />
-        <input
-          type="number"
-          aria-label={label}
+        <SliderNumberInput
+          key={`${id}:${value}`}
+          label={label}
           step={step}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onBlur={commit}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") e.currentTarget.blur();
-          }}
-          style={numberInputStyle}
+          value={value}
+          onCommit={onChange}
         />
       </div>
     </div>
@@ -144,20 +164,30 @@ interface BgInputProps {
   onBgChange: (s: string) => void;
 }
 
-/** Freeform background color input. Blank entries revert to the last value on blur. */
+function isValidCssColor(value: string): boolean {
+  if (typeof CSS !== "undefined" && typeof CSS.supports === "function") {
+    return CSS.supports("color", value);
+  }
+  if (typeof document === "undefined") {
+    return true;
+  }
+  const option = document.createElement("option");
+  option.style.color = "";
+  option.style.color = value;
+  return option.style.color !== "";
+}
+
+/** Freeform background color input. Blank or invalid entries revert to the last value on blur. */
 function BgInput({ bg, onBgChange }: BgInputProps) {
   const [text, setText] = useState(bg);
 
-  useEffect(() => {
-    setText(bg);
-  }, [bg]);
-
   function commit() {
-    if (text.trim() === "") {
+    const value = text.trim();
+    if (value === "" || !isValidCssColor(value)) {
       setText(bg);
       return;
     }
-    onBgChange(text);
+    onBgChange(value);
   }
 
   return (
@@ -309,7 +339,7 @@ export function ControlsBar({
 
           <div style={{ flex: "1 1 160px" }}>
             <label htmlFor="bg-input" style={labelStyle}>Background</label>
-            <BgInput bg={bg} onBgChange={onBgChange} />
+            <BgInput key={`bg:${bg}`} bg={bg} onBgChange={onBgChange} />
           </div>
 
           <div style={{ flex: "1 1 160px", display: "flex", alignItems: "flex-end" }}>

@@ -1,6 +1,7 @@
 import pytest
 from PIL import Image
 
+import converters
 from converters import convert_to_ascii_grid
 from img2ascii import ascii_chars
 from img2ansi import image_to_ansi
@@ -83,6 +84,23 @@ def test_ascii_grid_img_height_overrides_aspect(sample_image_path):
     assert result["cols"] == 20
     assert result["rows"] == 5
     assert len(result["cells"]) == 5
+
+
+def test_ascii_grid_img_height_uses_resampling_enum_without_image_lanczos(sample_image_path, monkeypatch):
+    class ResamplingOnlyImage:
+        BICUBIC = Image.BICUBIC
+
+        class Resampling:
+            LANCZOS = Image.Resampling.LANCZOS
+
+    monkeypatch.setattr(converters, "Image", ResamplingOnlyImage)
+
+    result = convert_to_ascii_grid(
+        sample_image_path, width=20, contrast=1.5, brightness=1.0, img_height=5
+    )
+
+    assert result["cols"] == 20
+    assert result["rows"] == 5
 
 
 def test_ascii_grid_min_lum_lifts_dark_pixels(sample_image_path):

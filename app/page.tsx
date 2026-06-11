@@ -71,6 +71,11 @@ export default function Home() {
     setError(null);
   }, []);
 
+  const handleFontSizeChange = useCallback((n: number) => {
+    if (!Number.isFinite(n)) return;
+    setFontSize(Math.max(1, n));
+  }, []);
+
   function handleCopy() {
     if (!result) return;
     const text = mode === "ascii" ? (result as AsciiResult).text : (result as AnsiResult).ansiText;
@@ -174,7 +179,7 @@ export default function Home() {
           onSharpnessChange={setSharpness}
           onSaturateChange={setSaturate}
           onMinLumChange={setMinLum}
-          onFontSizeChange={setFontSize}
+          onFontSizeChange={handleFontSizeChange}
           onPaletteChange={setPalette}
           onImgWidthChange={setImgWidth}
           onImgHeightChange={setImgHeight}
