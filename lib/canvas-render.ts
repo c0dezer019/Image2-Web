@@ -14,6 +14,7 @@ export function drawAsciiGrid(
   bg: string = BG_HEX,
   select: boolean = false,
 ): void {
+  fontSize = Math.max(1, fontSize);
   const { w: charW, h: charH } = charCellSize(fontSize);
   ctx.canvas.width = Math.round(result.cols * charW);
   ctx.canvas.height = Math.round(result.rows * charH);
