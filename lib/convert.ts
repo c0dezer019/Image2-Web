@@ -5,16 +5,19 @@ export async function convertImage(
   file: Blob,
   params: ConvertParams,
 ): Promise<AsciiResult | AnsiResult> {
-  const { w: charW, h: charH } = charCellSize(params.fontSize);
+  const safeFontSize = Math.max(1, params.fontSize);
+  const { w: charW, h: charH } = charCellSize(safeFontSize);
 
-  let width = params.width;
+  let width = Math.max(1, Math.round(params.width));
   let imgHeightRows = 0;
   if (params.mode === "ascii") {
-    if (params.imgWidth > 0) {
-      width = Math.max(1, Math.round(params.imgWidth / charW));
+    if (params.imgWidth > 0 && charW > 0) {
+      const nextWidth = Math.round(params.imgWidth / charW);
+      if (Number.isFinite(nextWidth)) width = Math.max(1, nextWidth);
     }
-    if (params.imgHeight > 0) {
-      imgHeightRows = Math.max(1, Math.round(params.imgHeight / charH));
+    if (params.imgHeight > 0 && charH > 0) {
+      const nextHeight = Math.round(params.imgHeight / charH);
+      if (Number.isFinite(nextHeight)) imgHeightRows = Math.max(1, nextHeight);
     }
   }
 
