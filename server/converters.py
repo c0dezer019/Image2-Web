@@ -62,11 +62,11 @@ def convert_to_ansi_grid(
 
     if min_lum > 0:
         img = img.convert("RGB")
+        px = img.load()
         for y in range(img.height):
             for x in range(img.width):
-                r, g, b = img.getpixel((x, y))
-                img.putpixel((x, y), lift_luminance(r, g, b, min_lum))
-
+                r, g, b = px[x, y]
+                px[x, y] = lift_luminance(r, g, b, min_lum)
     w, h = img.size
     rows = h // 2
 
