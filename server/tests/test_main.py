@@ -3,7 +3,7 @@ import io
 from fastapi.testclient import TestClient
 from PIL import Image
 
-from main import app
+from main import MAX_OUTPUT_COLS, MAX_OUTPUT_ROWS, app
 
 client = TestClient(app)
 
@@ -14,8 +14,8 @@ def test_health():
     assert res.json() == {"status": "ok"}
 
 
-def _sample_png_bytes() -> bytes:
-    img = Image.new("RGB", (40, 30), (120, 60, 200))
+def _sample_png_bytes(size: tuple[int, int] = (40, 30)) -> bytes:
+    img = Image.new("RGB", size, (120, 60, 200))
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     return buf.getvalue()
@@ -62,3 +62,33 @@ def test_convert_ansi_rejects_bad_palette():
         data={"width": "20", "contrast": "1.5", "brightness": "1.0", "palette": "bogus"},
     )
     assert res.status_code == 422
+
+
+def test_convert_ascii_rejects_oversized_output():
+    res = client.post(
+        "/convert/ascii",
+        files={"file": ("sample.png", _sample_png_bytes(), "image/png")},
+        data={
+            "width": str(MAX_OUTPUT_COLS),
+            "img_height": str(MAX_OUTPUT_ROWS + 1),
+            "contrast": "1.5",
+            "brightness": "1.0",
+        },
+    )
+    assert res.status_code == 422
+    assert res.json() == {"detail": "Output dimensions exceed server limits"}
+
+
+def test_convert_ansi_rejects_oversized_output():
+    res = client.post(
+        "/convert/ansi",
+        files={"file": ("sample.png", _sample_png_bytes(), "image/png")},
+        data={
+            "width": str(MAX_OUTPUT_COLS + 1),
+            "contrast": "1.5",
+            "brightness": "1.0",
+            "palette": "truecolor",
+        },
+    )
+    assert res.status_code == 422
+    assert res.json() == {"detail": "Output dimensions exceed server limits"}

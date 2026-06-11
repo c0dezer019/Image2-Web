@@ -11,12 +11,15 @@ export function drawAsciiGrid(
   ctx: CanvasRenderingContext2D,
   result: AsciiResult,
   fontSize: number,
+  bg: string = BG_HEX,
+  select: boolean = false,
 ): void {
+  fontSize = Math.max(1, fontSize);
   const { w: charW, h: charH } = charCellSize(fontSize);
   ctx.canvas.width = Math.round(result.cols * charW);
   ctx.canvas.height = Math.round(result.rows * charH);
 
-  ctx.fillStyle = BG_HEX;
+  ctx.fillStyle = bg;
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
   ctx.font = `${fontSize}px ${FONT_MONO}`;
@@ -29,6 +32,14 @@ export function drawAsciiGrid(
       ctx.fillText(cell.ch, x * charW, y * charH);
     });
   });
+
+  if (select) {
+    const halfH = charH / 2;
+    ctx.fillStyle = "rgba(0,0,0,0.2)";
+    for (let y = 0; y < result.rows; y++) {
+      ctx.fillRect(0, y * charH + halfH, ctx.canvas.width, halfH);
+    }
+  }
 }
 
 export function drawAnsiGrid(

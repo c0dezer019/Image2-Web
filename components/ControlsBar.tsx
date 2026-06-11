@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { COLORS, FONT_MONO } from "@/lib/theme";
 import type { AnsiPalette, OutputMode } from "@/lib/types";
 
@@ -8,13 +9,27 @@ interface ControlsBarProps {
   width: number;
   contrast: number;
   brightness: number;
+  sharpness: number;
+  saturate: number;
+  minLum: number;
   fontSize: number;
   palette: AnsiPalette;
+  imgWidth: number;
+  imgHeight: number;
+  bg: string;
+  select: boolean;
   onWidthChange: (n: number) => void;
   onContrastChange: (n: number) => void;
   onBrightnessChange: (n: number) => void;
+  onSharpnessChange: (n: number) => void;
+  onSaturateChange: (n: number) => void;
+  onMinLumChange: (n: number) => void;
   onFontSizeChange: (n: number) => void;
   onPaletteChange: (p: AnsiPalette) => void;
+  onImgWidthChange: (n: number) => void;
+  onImgHeightChange: (n: number) => void;
+  onBgChange: (s: string) => void;
+  onSelectChange: (b: boolean) => void;
 }
 
 const labelStyle: React.CSSProperties = {
@@ -31,6 +46,21 @@ function sliderStyle(): React.CSSProperties {
   return { width: "100%", accentColor: COLORS.accent };
 }
 
+const numberInputStyle: React.CSSProperties = {
+  width: 56,
+  background: "transparent",
+  border: `1px solid ${COLORS.borderStrong}`,
+  color: COLORS.text,
+  fontFamily: FONT_MONO,
+  fontSize: 12,
+  padding: "4px 6px",
+};
+
+const textInputStyle: React.CSSProperties = {
+  ...numberInputStyle,
+  width: "100%",
+};
+
 function segButtonStyle(active: boolean): React.CSSProperties {
   return {
     fontFamily: FONT_MONO,
@@ -45,18 +75,162 @@ function segButtonStyle(active: boolean): React.CSSProperties {
   };
 }
 
+interface SliderFieldProps {
+  id: string;
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  onChange: (n: number) => void;
+}
+
+function SliderNumberInput({
+  label,
+  step,
+  value,
+  onCommit,
+}: {
+  label: string;
+  step: number;
+  value: number;
+  onCommit: (n: number) => void;
+}) {
+  const [text, setText] = useState(String(value));
+
+  function commit() {
+    const n = Number(text);
+    if (text.trim() === "" || !Number.isFinite(n) || n < 0) {
+      setText(String(value));
+      return;
+    }
+    onCommit(n);
+  }
+
+  return (
+    <input
+      type="number"
+      aria-label={label}
+      step={step}
+      value={text}
+      onChange={(e) => setText(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") e.currentTarget.blur();
+      }}
+      style={numberInputStyle}
+    />
+  );
+}
+
+/**
+ * Range slider paired with a freeform number input. The slider is clamped to
+ * [min, max]; the number input has no min/max, so typing a value beyond the
+ * slider's range overrides it (the slider simply pegs at its end). Blank,
+ * negative, or non-finite entries are rejected and revert to the last valid
+ * value on blur.
+ */
+function SliderField({ id, label, value, min, max, step, onChange }: SliderFieldProps) {
+  const sliderValue = Math.min(Math.max(value, min), max);
+
+  return (
+    <div style={{ flex: "1 1 160px" }}>
+      <label htmlFor={id} style={labelStyle}>{label}</label>
+      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        <input
+          id={id}
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={sliderValue}
+          onChange={(e) => onChange(Number(e.target.value))}
+          style={sliderStyle()}
+        />
+        <SliderNumberInput
+          key={`${id}:${value}`}
+          label={label}
+          step={step}
+          value={value}
+          onCommit={onChange}
+        />
+      </div>
+    </div>
+  );
+}
+
+interface BgInputProps {
+  bg: string;
+  onBgChange: (s: string) => void;
+}
+
+function isValidCssColor(value: string): boolean {
+  if (typeof CSS !== "undefined" && typeof CSS.supports === "function") {
+    return CSS.supports("color", value);
+  }
+  if (typeof document === "undefined") {
+    return true;
+  }
+  const option = document.createElement("option");
+  option.style.color = "";
+  option.style.color = value;
+  return option.style.color !== "";
+}
+
+/** Freeform background color input. Blank or invalid entries revert to the last value on blur. */
+function BgInput({ bg, onBgChange }: BgInputProps) {
+  const [text, setText] = useState(bg);
+
+  function commit() {
+    const value = text.trim();
+    if (value === "" || !isValidCssColor(value)) {
+      setText(bg);
+      return;
+    }
+    onBgChange(value);
+  }
+
+  return (
+    <input
+      id="bg-input"
+      type="text"
+      value={text}
+      onChange={(e) => setText(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") e.currentTarget.blur();
+      }}
+      style={textInputStyle}
+    />
+  );
+}
+
 export function ControlsBar({
   mode,
   width,
   contrast,
   brightness,
+  sharpness,
+  saturate,
+  minLum,
   fontSize,
   palette,
+  imgWidth,
+  imgHeight,
+  bg,
+  select,
   onWidthChange,
   onContrastChange,
   onBrightnessChange,
+  onSharpnessChange,
+  onSaturateChange,
+  onMinLumChange,
   onFontSizeChange,
   onPaletteChange,
+  onImgWidthChange,
+  onImgHeightChange,
+  onBgChange,
+  onSelectChange,
 }: ControlsBarProps) {
   return (
     <div
@@ -71,80 +245,120 @@ export function ControlsBar({
         marginTop: 18,
       }}
     >
-      <div style={{ flex: "1 1 160px" }}>
-        <label htmlFor="width-slider" style={labelStyle}>Width — {width} cols</label>
-        <input
-          id="width-slider"
-          type="range"
-          min={40}
-          max={220}
-          step={2}
-          value={width}
-          onChange={(e) => onWidthChange(Number(e.target.value))}
-          style={sliderStyle()}
-        />
-      </div>
+      <SliderField
+        id="width-slider"
+        label={`Width — ${width} cols`}
+        value={width}
+        min={40}
+        max={220}
+        step={2}
+        onChange={onWidthChange}
+      />
 
-      <div style={{ flex: "1 1 160px" }}>
-        <label htmlFor="contrast-slider" style={labelStyle}>Contrast — {contrast.toFixed(2)}</label>
-        <input
-          id="contrast-slider"
-          type="range"
-          min={0.3}
-          max={2.2}
-          step={0.05}
-          value={contrast}
-          onChange={(e) => onContrastChange(Number(e.target.value))}
-          style={sliderStyle()}
-        />
-      </div>
+      <SliderField
+        id="contrast-slider"
+        label={`Contrast — ${contrast.toFixed(2)}`}
+        value={contrast}
+        min={0.3}
+        max={2.2}
+        step={0.05}
+        onChange={onContrastChange}
+      />
 
-      <div style={{ flex: "1 1 160px" }}>
-        <label htmlFor="brightness-slider" style={labelStyle}>Brightness — {brightness.toFixed(2)}&times;</label>
-        <input
-          id="brightness-slider"
-          type="range"
-          min={0.2}
-          max={2.0}
-          step={0.02}
-          value={brightness}
-          onChange={(e) => onBrightnessChange(Number(e.target.value))}
-          style={sliderStyle()}
-        />
-      </div>
+      <SliderField
+        id="brightness-slider"
+        label={`Brightness — ${brightness.toFixed(2)}×`}
+        value={brightness}
+        min={0.2}
+        max={2.0}
+        step={0.02}
+        onChange={onBrightnessChange}
+      />
 
-      <div style={{ flex: "1 1 160px" }}>
-        <label htmlFor="font-size-slider" style={labelStyle}>Font size — {fontSize}px</label>
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <input
-            id="font-size-slider"
-            type="range"
-            min={2}
-            max={32}
-            step={0.5}
-            value={fontSize}
-            onChange={(e) => onFontSizeChange(Number(e.target.value))}
-            style={sliderStyle()}
+      <SliderField
+        id="sharpness-slider"
+        label={`Sharpness — ${sharpness.toFixed(2)}`}
+        value={sharpness}
+        min={0}
+        max={5}
+        step={0.1}
+        onChange={onSharpnessChange}
+      />
+
+      <SliderField
+        id="saturate-slider"
+        label={`Saturate — ${saturate.toFixed(2)}×`}
+        value={saturate}
+        min={0}
+        max={3}
+        step={0.1}
+        onChange={onSaturateChange}
+      />
+
+      <SliderField
+        id="min-lum-slider"
+        label={`Min luminance — ${minLum.toFixed(2)}`}
+        value={minLum}
+        min={0}
+        max={1}
+        step={0.05}
+        onChange={onMinLumChange}
+      />
+
+      <SliderField
+        id="font-size-slider"
+        label={`Font size — ${fontSize}px`}
+        value={fontSize}
+        min={2}
+        max={32}
+        step={0.5}
+        onChange={onFontSizeChange}
+      />
+
+      {mode === "ascii" && (
+        <>
+          <SliderField
+            id="img-width-slider"
+            label={`Image width — ${imgWidth ? `${imgWidth}px` : "auto"}`}
+            value={imgWidth}
+            min={0}
+            max={2000}
+            step={20}
+            onChange={onImgWidthChange}
           />
-          <input
-            type="number"
-            aria-label="Font size in pixels"
-            min={0.5}
-            step={0.5}
-            value={fontSize}
-            onChange={(e) => onFontSizeChange(Number(e.target.value))}
-            style={{
-              width: 56,
-              background: "transparent",
-              border: `1px solid ${COLORS.borderStrong}`,
-              color: COLORS.text,
-              fontFamily: FONT_MONO,
-              fontSize: 12,
-              padding: "4px 6px",
-            }}
+
+          <SliderField
+            id="img-height-slider"
+            label={`Image height — ${imgHeight ? `${imgHeight}px` : "auto"}`}
+            value={imgHeight}
+            min={0}
+            max={2000}
+            step={20}
+            onChange={onImgHeightChange}
           />
-        </div>
-      </div>
+
+          <div style={{ flex: "1 1 160px" }}>
+            <label htmlFor="bg-input" style={labelStyle}>Background</label>
+            <BgInput key={`bg:${bg}`} bg={bg} onBgChange={onBgChange} />
+          </div>
+
+          <div style={{ flex: "1 1 160px", display: "flex", alignItems: "flex-end" }}>
+            <label
+              htmlFor="select-checkbox"
+              style={{ ...labelStyle, marginBottom: 0, display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}
+            >
+              <input
+                id="select-checkbox"
+                type="checkbox"
+                checked={select}
+                onChange={(e) => onSelectChange(e.target.checked)}
+                style={{ accentColor: COLORS.accent }}
+              />
+              Select highlight
+            </label>
+          </div>
+        </>
+      )}
 
       {mode === "ansi" && (
         <div style={{ flex: "1 1 100%" }}>

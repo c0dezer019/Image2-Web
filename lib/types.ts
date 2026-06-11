@@ -36,6 +36,11 @@ export interface ConvertParams {
   width: number;
   contrast: number;
   brightness: number;
+  sharpness: number;
+  saturate: number;
+  minLum: number;
   fontSize: number;
   palette: AnsiPalette;
+  imgWidth: number;
+  imgHeight: number;
 }

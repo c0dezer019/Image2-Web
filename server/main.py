@@ -5,7 +5,7 @@ import tempfile
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from PIL import UnidentifiedImageError
+from PIL import Image, UnidentifiedImageError
 
 from converters import convert_to_ansi_grid, convert_to_ascii_grid
 
@@ -19,6 +19,9 @@ app.add_middleware(
 )
 
 VALID_PALETTES = ("truecolor", "256", "bbs16")
+MAX_OUTPUT_COLS = 400
+MAX_OUTPUT_ROWS = 400
+MAX_OUTPUT_CELLS = 120_000
 
 
 @app.get("/health")
@@ -34,16 +37,49 @@ def _save_upload(file: UploadFile) -> str:
     return path
 
 
+def _estimate_rows(path: str, width: int, img_height: int, cell_aspect: float) -> int:
+    if img_height > 0:
+        return img_height
+    with Image.open(path) as img:
+        aspect = img.height / img.width
+    return max(1, round(width * aspect * cell_aspect))
+
+
+def _validate_output_size(cols: int, rows: int) -> None:
+    if cols < 1 or rows < 1:
+        raise HTTPException(status_code=422, detail="Output dimensions exceed server limits")
+    if (
+        cols > MAX_OUTPUT_COLS
+        or rows > MAX_OUTPUT_ROWS
+        or cols * rows > MAX_OUTPUT_CELLS
+    ):
+        raise HTTPException(status_code=422, detail="Output dimensions exceed server limits")
+
 @app.post("/convert/ascii")
 def convert_ascii(
     file: UploadFile = File(...),
-    width: int = Form(100),
+    width: int = Form(100, ge=1, le=1000),
     contrast: float = Form(1.5),
     brightness: float = Form(1.0),
+    sharpness: float = Form(2.5, ge=0),
+    saturate: float = Form(1.0, ge=0),
+    min_lum: float = Form(0.0, ge=0),
+    img_height: int = Form(0, ge=0, le=1000),
 ) -> dict:
     path = _save_upload(file)
     try:
-        return convert_to_ascii_grid(path, width, contrast, brightness)
+        rows = _estimate_rows(path, width, img_height, cell_aspect=0.75)
+        _validate_output_size(width, rows)
+        return convert_to_ascii_grid(
+            path,
+            width=width,
+            contrast=contrast,
+            brightness=brightness,
+            sharpness=sharpness,
+            saturate=saturate,
+            min_lum=min_lum,
+            img_height=img_height,
+        )
     except UnidentifiedImageError:
         raise HTTPException(status_code=422, detail="Could not read image file")
     finally:
@@ -53,16 +89,30 @@ def convert_ascii(
 @app.post("/convert/ansi")
 def convert_ansi(
     file: UploadFile = File(...),
-    width: int = Form(80),
+    width: int = Form(80, ge=1, le=1000),
     contrast: float = Form(1.5),
     brightness: float = Form(1.0),
     palette: str = Form("truecolor"),
+    sharpness: float = Form(2.5),
+    saturate: float = Form(1.0),
+    min_lum: float = Form(0.0),
 ) -> dict:
     if palette not in VALID_PALETTES:
         raise HTTPException(status_code=422, detail="Invalid palette")
     path = _save_upload(file)
     try:
-        return convert_to_ansi_grid(path, width, contrast, brightness, palette)
+        rows = _estimate_rows(path, width, 0, cell_aspect=1.0) // 2
+        _validate_output_size(width, rows)
+        return convert_to_ansi_grid(
+            path,
+            width=width,
+            contrast=contrast,
+            brightness=brightness,
+            palette=palette,
+            sharpness=sharpness,
+            saturate=saturate,
+            min_lum=min_lum,
+        )
     except UnidentifiedImageError:
         raise HTTPException(status_code=422, detail="Could not read image file")
     finally:
