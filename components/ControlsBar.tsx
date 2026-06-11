@@ -72,8 +72,9 @@ export function ControlsBar({
       }}
     >
       <div style={{ flex: "1 1 160px" }}>
-        <label style={labelStyle}>Width — {width} cols</label>
+        <label htmlFor="width-slider" style={labelStyle}>Width — {width} cols</label>
         <input
+          id="width-slider"
           type="range"
           min={40}
           max={220}
@@ -85,8 +86,9 @@ export function ControlsBar({
       </div>
 
       <div style={{ flex: "1 1 160px" }}>
-        <label style={labelStyle}>Contrast — {contrast.toFixed(2)}</label>
+        <label htmlFor="contrast-slider" style={labelStyle}>Contrast — {contrast.toFixed(2)}</label>
         <input
+          id="contrast-slider"
           type="range"
           min={0.3}
           max={2.2}
@@ -98,8 +100,9 @@ export function ControlsBar({
       </div>
 
       <div style={{ flex: "1 1 160px" }}>
-        <label style={labelStyle}>Brightness — {brightness.toFixed(2)}&times;</label>
+        <label htmlFor="brightness-slider" style={labelStyle}>Brightness — {brightness.toFixed(2)}&times;</label>
         <input
+          id="brightness-slider"
           type="range"
           min={0.2}
           max={2.0}
@@ -111,9 +114,10 @@ export function ControlsBar({
       </div>
 
       <div style={{ flex: "1 1 160px" }}>
-        <label style={labelStyle}>Font size — {fontSize}px</label>
+        <label htmlFor="font-size-slider" style={labelStyle}>Font size — {fontSize}px</label>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <input
+            id="font-size-slider"
             type="range"
             min={2}
             max={32}
@@ -124,6 +128,7 @@ export function ControlsBar({
           />
           <input
             type="number"
+            aria-label="Font size in pixels"
             min={0.5}
             step={0.5}
             value={fontSize}
@@ -143,8 +148,8 @@ export function ControlsBar({
 
       {mode === "ansi" && (
         <div style={{ flex: "1 1 100%" }}>
-          <label style={labelStyle}>ANSI Palette</label>
-          <div style={{ display: "flex", gap: 8 }}>
+          <span id="ansi-palette-label" style={labelStyle}>ANSI Palette</span>
+          <div role="group" aria-labelledby="ansi-palette-label" style={{ display: "flex", gap: 8 }}>
             {(["truecolor", "256", "bbs16"] as AnsiPalette[]).map((p) => (
               <button key={p} onClick={() => onPaletteChange(p)} style={segButtonStyle(palette === p)}>
                 {p}
