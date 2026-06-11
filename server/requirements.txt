@@ -1,4 +1,4 @@
 fastapi
 uvicorn[standard]
 python-multipart
-image2 @ git+https://github.com/c0dezer019/image2.git
+image2 @ git+https://github.com/c0dezer019/image2.git@9aba4e338621f8ec3f09a94dc269205c0e7dbe82
