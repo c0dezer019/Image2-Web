@@ -88,7 +88,7 @@ def convert_ascii(
 @app.post("/convert/ansi")
 def convert_ansi(
     file: UploadFile = File(...),
-    width: int = Form(80),
+    width: int = Form(80, ge=1, le=1000),
     contrast: float = Form(1.5),
     brightness: float = Form(1.0),
     palette: str = Form("truecolor"),
