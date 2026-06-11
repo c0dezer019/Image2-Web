@@ -57,13 +57,13 @@ def _validate_output_size(cols: int, rows: int) -> None:
 @app.post("/convert/ascii")
 def convert_ascii(
     file: UploadFile = File(...),
-    width: int = Form(100),
+    width: int = Form(100, ge=1, le=1000),
     contrast: float = Form(1.5),
     brightness: float = Form(1.0),
-    sharpness: float = Form(2.5),
-    saturate: float = Form(1.0),
-    min_lum: float = Form(0.0),
-    img_height: int = Form(0),
+    sharpness: float = Form(2.5, ge=0),
+    saturate: float = Form(1.0, ge=0),
+    min_lum: float = Form(0.0, ge=0),
+    img_height: int = Form(0, ge=0, le=1000),
 ) -> dict:
     path = _save_upload(file)
     try:
