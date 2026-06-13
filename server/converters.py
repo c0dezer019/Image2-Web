@@ -21,7 +21,9 @@ def convert_to_ascii_grid(
     min_lum: float = MIN_LUM_DEFAULT,
     img_height: int = 0,
 ) -> dict:
-    img = load_and_enhance(path, contrast, sharpness, brightness, saturate)
+    pil_img = Image.open(path)
+    img = load_and_enhance(pil_img, contrast, sharpness, brightness, saturate)
+
     if img_height > 0:
         try:
             resample = Image.Resampling.LANCZOS
@@ -60,7 +62,8 @@ def convert_to_ansi_grid(
     saturate: float = SATURATE_DEFAULT,
     min_lum: float = MIN_LUM_DEFAULT,
 ) -> dict:
-    img = load_and_enhance(path, contrast, sharpness, brightness, saturate)
+    pil_img = Image.open(path)
+    img = load_and_enhance(pil_img, contrast, sharpness, brightness, saturate)
     img = resize_for(img, width, cell_aspect=1.0)
 
     if min_lum > 0:
