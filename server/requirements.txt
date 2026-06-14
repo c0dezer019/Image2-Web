@@ -1,4 +1,5 @@
 fastapi
 uvicorn[standard]
 python-multipart
+slowapi
 image2 @ git+https://github.com/c0dezer019/image2.git@v1.2.1
