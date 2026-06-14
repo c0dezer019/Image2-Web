@@ -56,6 +56,23 @@ describe("drawAsciiGrid", () => {
     // 1 background fill + 1 stripe rect per row
     expect(ctx.fillRect).toHaveBeenCalledTimes(1 + result.rows);
   });
+
+  it("renders every glyph in font-color when monochrome is enabled", () => {
+    const ctx = makeCtx();
+    const fillStyles: string[] = [];
+    Object.defineProperty(ctx, "fillStyle", {
+      get() { return fillStyles[fillStyles.length - 1]; },
+      set(v: string) { fillStyles.push(v); },
+    });
+
+    drawAsciiGrid(ctx as unknown as CanvasRenderingContext2D, result, 10, "#070c12", false, true, "#00ff00");
+
+    // bg fill, then monochrome fillStyle set once before drawing glyphs
+    expect(fillStyles).toContain("#00ff00");
+    // per-cell rgb-based fillStyle should never be set in monochrome mode
+    expect(fillStyles.some((s) => s.startsWith("rgb("))).toBe(false);
+    expect(ctx.fillText).toHaveBeenCalledTimes(3);
+  });
 });
 
 describe("drawAnsiGrid", () => {

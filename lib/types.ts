@@ -31,6 +31,18 @@ export interface AnsiResult {
   ansiText: string;
 }
 
+/**
+ * Auto-derived enhancement defaults for a given source image, from
+ * `imgcommon.compute_auto_params` (image2 CLI's auto-detect-by-default
+ * behavior). Sharpness is never auto-detected and is not included.
+ */
+export interface AutoParams {
+  contrast: number;
+  brightness: number;
+  saturate: number;
+  minLum: number;
+}
+
 export interface ConvertParams {
   mode: OutputMode;
   width: number;
@@ -43,4 +55,8 @@ export interface ConvertParams {
   palette: AnsiPalette;
   imgWidth: number;
   imgHeight: number;
+  invert: boolean;
+  blur: number;
+  /** Dense mode (image2 CLI's `--min`): caps ascii width to 100 cols. Ascii-only. */
+  dense: boolean;
 }

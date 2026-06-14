@@ -7,7 +7,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image, UnidentifiedImageError
 
-from converters import convert_to_ansi_grid, convert_to_ascii_grid
+from converters import analyze_image, convert_to_ansi_grid, convert_to_ascii_grid
 
 app = FastAPI(title="image2 server")
 
@@ -64,6 +64,21 @@ def _validate_output_size(cols: int, rows: int) -> None:
         )
 
 
+@app.post("/analyze")
+def analyze(
+    file: UploadFile = File(...),
+    invert: bool = Form(False),
+    blur: float = Form(0.0, ge=0, le=25),
+) -> dict:
+    path = _save_upload(file)
+    try:
+        return analyze_image(path, invert=invert, blur=blur)
+    except UnidentifiedImageError:
+        raise HTTPException(status_code=422, detail="Could not read image file")
+    finally:
+        os.remove(path)
+
+
 @app.post("/convert/ascii")
 def convert_ascii(
     file: UploadFile = File(...),
@@ -74,6 +89,8 @@ def convert_ascii(
     saturate: float = Form(1.0, ge=0),
     min_lum: float = Form(0.0, ge=0),
     img_height: int = Form(0, ge=0, le=1000),
+    invert: bool = Form(False),
+    blur: float = Form(0.0, ge=0, le=25),
 ) -> dict:
     path = _save_upload(file)
     try:
@@ -88,6 +105,8 @@ def convert_ascii(
             saturate=saturate,
             min_lum=min_lum,
             img_height=img_height,
+            invert=invert,
+            blur=blur,
         )
     except UnidentifiedImageError:
         raise HTTPException(status_code=422, detail="Could not read image file")
@@ -105,6 +124,8 @@ def convert_ansi(
     sharpness: float = Form(2.5),
     saturate: float = Form(1.0),
     min_lum: float = Form(0.0),
+    invert: bool = Form(False),
+    blur: float = Form(0.0, ge=0, le=25),
 ) -> dict:
     if palette not in VALID_PALETTES:
         raise HTTPException(status_code=422, detail="Invalid palette")
@@ -121,6 +142,8 @@ def convert_ansi(
             sharpness=sharpness,
             saturate=saturate,
             min_lum=min_lum,
+            invert=invert,
+            blur=blur,
         )
     except UnidentifiedImageError:
         raise HTTPException(status_code=422, detail="Could not read image file")

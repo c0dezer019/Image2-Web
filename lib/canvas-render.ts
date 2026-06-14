@@ -13,6 +13,8 @@ export function drawAsciiGrid(
   fontSize: number,
   bg: string = BG_HEX,
   select: boolean = false,
+  monochrome: boolean = false,
+  fontColor: string = "#ffffff",
 ): void {
   fontSize = Math.max(1, fontSize);
   const { w: charW, h: charH } = charCellSize(fontSize);
@@ -25,10 +27,14 @@ export function drawAsciiGrid(
   ctx.font = `${fontSize}px ${FONT_MONO}`;
   ctx.textBaseline = "top";
 
+  // image2 CLI's `--monochrome`/`--font-color`: render every glyph in a
+  // single color instead of each cell's derived pixel color.
+  if (monochrome) ctx.fillStyle = fontColor;
+
   result.cells.forEach((row, y) => {
     row.forEach((cell, x) => {
       if (cell.ch === " ") return;
-      ctx.fillStyle = `rgb(${cell.r},${cell.g},${cell.b})`;
+      if (!monochrome) ctx.fillStyle = `rgb(${cell.r},${cell.g},${cell.b})`;
       ctx.fillText(cell.ch, x * charW, y * charH);
     });
   });

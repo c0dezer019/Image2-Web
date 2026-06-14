@@ -48,7 +48,8 @@ def test_ansi_grid_matches_real_image_to_ansi(sample_image_path):
         sample_image_path, width=20, contrast=1.5, brightness=1.0, palette="truecolor"
     )
 
-    img = _load_and_enhance(sample_image_path, 1.5, 2.5, 1.0, 1.0)
+    with Image.open(sample_image_path) as src:
+        img = _load_and_enhance(src, 1.5, 2.5, 1.0, 1.0)
     img = _resize_for(img, 20, cell_aspect=1.0)
     expected_ansi = image_to_ansi(img, mode="truecolor")
 
@@ -89,6 +90,7 @@ def test_ascii_grid_img_height_overrides_aspect(sample_image_path):
 def test_ascii_grid_img_height_uses_resampling_enum_without_image_lanczos(sample_image_path, monkeypatch):
     class ResamplingOnlyImage:
         BICUBIC = Image.BICUBIC
+        open = staticmethod(Image.open)
 
         class Resampling:
             LANCZOS = Image.Resampling.LANCZOS
@@ -130,6 +132,78 @@ def test_ansi_grid_min_lum_changes_output(sample_image_path):
 
     assert lifted["ansiText"] != base["ansiText"]
     assert lifted["cells"] != base["cells"]
+
+
+def test_analyze_image_returns_auto_params(sample_image_path):
+    from converters import analyze_image
+
+    result = analyze_image(sample_image_path)
+
+    assert set(result.keys()) == {"contrast", "brightness", "saturate", "min_lum"}
+    for value in result.values():
+        assert isinstance(value, float)
+
+
+def test_ascii_grid_invert_changes_pixels(sample_image_path):
+    base = convert_to_ascii_grid(sample_image_path, width=20, contrast=1.5, brightness=1.0)
+    inverted = convert_to_ascii_grid(
+        sample_image_path, width=20, contrast=1.5, brightness=1.0, invert=True
+    )
+    assert inverted["cells"] != base["cells"]
+
+
+def test_ascii_grid_blur_changes_pixels(sample_image_path):
+    base = convert_to_ascii_grid(sample_image_path, width=20, contrast=1.5, brightness=1.0)
+    blurred = convert_to_ascii_grid(
+        sample_image_path, width=20, contrast=1.5, brightness=1.0, blur=4.0
+    )
+    assert blurred["cells"] != base["cells"]
+
+
+def test_ansi_grid_invert_changes_output(sample_image_path):
+    from converters import convert_to_ansi_grid
+
+    base = convert_to_ansi_grid(
+        sample_image_path, width=20, contrast=1.5, brightness=1.0, palette="truecolor"
+    )
+    inverted = convert_to_ansi_grid(
+        sample_image_path, width=20, contrast=1.5, brightness=1.0, palette="truecolor", invert=True
+    )
+    assert inverted["cells"] != base["cells"]
+    assert inverted["ansiText"] != base["ansiText"]
+
+
+def test_ansi_grid_blur_changes_output(sample_image_path):
+    from converters import convert_to_ansi_grid
+
+    base = convert_to_ansi_grid(
+        sample_image_path, width=20, contrast=1.5, brightness=1.0, palette="truecolor"
+    )
+    blurred = convert_to_ansi_grid(
+        sample_image_path, width=20, contrast=1.5, brightness=1.0, palette="truecolor", blur=4.0
+    )
+    assert blurred["cells"] != base["cells"]
+
+
+def test_analyze_image_invert_changes_params(sample_image_path):
+    from converters import analyze_image
+
+    base = analyze_image(sample_image_path)
+    inverted = analyze_image(sample_image_path, invert=True)
+    assert inverted != base
+
+
+def test_preprocess_handles_rgba_invert(tmp_path):
+    """ImageOps.invert errors on non-RGB modes; _preprocess must convert RGBA
+    (a common upload) to RGB before inverting."""
+    from converters import convert_to_ascii_grid
+
+    img = Image.new("RGBA", (20, 16), (10, 20, 30, 255))
+    path = tmp_path / "rgba.png"
+    img.save(path)
+
+    result = convert_to_ascii_grid(str(path), width=10, contrast=1.5, brightness=1.0, invert=True)
+    assert result["cols"] == 10
 
 
 def test_ascii_grid_sharpness_and_saturate_accepted(sample_image_path):
