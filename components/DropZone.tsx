@@ -105,7 +105,7 @@ export function DropZone({ fileName, onFile, onError }: DropZoneProps) {
           {fileName ?? "Drag & drop an image here"}
         </div>
         <div style={{ fontSize: 13, color: COLORS.muted }}>
-          {fileName ? "click to replace · PNG, JPG, GIF, WebP" : "PNG, JPG, GIF, WebP — up to 10MB"}
+          {fileName ? "click to replace · PNG, JPG, GIF, WebP" : "PNG, JPG, GIF, WebP — up to 50MB"}
         </div>
         <div
           style={{
