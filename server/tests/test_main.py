@@ -21,6 +21,24 @@ def _sample_png_bytes(size: tuple[int, int] = (40, 30)) -> bytes:
     return buf.getvalue()
 
 
+def test_analyze_returns_auto_params():
+    res = client.post(
+        "/analyze",
+        files={"file": ("sample.png", _sample_png_bytes(), "image/png")},
+    )
+    assert res.status_code == 200
+    body = res.json()
+    assert set(body.keys()) == {"contrast", "brightness", "saturate", "min_lum"}
+
+
+def test_analyze_rejects_bad_image():
+    res = client.post(
+        "/analyze",
+        files={"file": ("bad.png", b"not an image", "image/png")},
+    )
+    assert res.status_code == 422
+
+
 def test_convert_ascii_returns_grid():
     res = client.post(
         "/convert/ascii",
@@ -44,6 +62,32 @@ def test_convert_ansi_returns_grid_and_text():
     assert body["cols"] == 20
     assert "ansiText" in body
     assert body["ansiText"].startswith("\x1b[")
+
+
+def test_convert_ascii_invert_and_blur_change_output():
+    base = client.post(
+        "/convert/ascii",
+        files={"file": ("sample.png", _sample_png_bytes(), "image/png")},
+        data={"width": "20", "contrast": "1.5", "brightness": "1.0"},
+    )
+    inverted = client.post(
+        "/convert/ascii",
+        files={"file": ("sample.png", _sample_png_bytes(), "image/png")},
+        data={"width": "20", "contrast": "1.5", "brightness": "1.0", "invert": "true", "blur": "4.0"},
+    )
+    assert inverted.status_code == 200
+    assert inverted.json()["cells"] != base.json()["cells"]
+
+
+def test_analyze_accepts_invert_and_blur():
+    res = client.post(
+        "/analyze",
+        files={"file": ("sample.png", _sample_png_bytes(), "image/png")},
+        data={"invert": "true", "blur": "2.0"},
+    )
+    assert res.status_code == 200
+    body = res.json()
+    assert set(body.keys()) == {"contrast", "brightness", "saturate", "min_lum"}
 
 
 def test_convert_ascii_rejects_bad_image():

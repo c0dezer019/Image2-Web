@@ -18,6 +18,14 @@ interface ControlsBarProps {
   imgHeight: number;
   bg: string;
   select: boolean;
+  invert: boolean;
+  blur: number;
+  dense: boolean;
+  monochrome: boolean;
+  fontColor: string;
+  hasFile: boolean;
+  analyzing: boolean;
+  onAuto: () => void;
   onWidthChange: (n: number) => void;
   onContrastChange: (n: number) => void;
   onBrightnessChange: (n: number) => void;
@@ -30,6 +38,11 @@ interface ControlsBarProps {
   onImgHeightChange: (n: number) => void;
   onBgChange: (s: string) => void;
   onSelectChange: (b: boolean) => void;
+  onInvertChange: (b: boolean) => void;
+  onBlurChange: (n: number) => void;
+  onDenseChange: (b: boolean) => void;
+  onMonochromeChange: (b: boolean) => void;
+  onFontColorChange: (s: string) => void;
 }
 
 const labelStyle: React.CSSProperties = {
@@ -205,6 +218,42 @@ function BgInput({ bg, onBgChange }: BgInputProps) {
   );
 }
 
+interface ColorInputProps {
+  id: string;
+  value: string;
+  onChange: (s: string) => void;
+  disabled?: boolean;
+}
+
+/** Freeform CSS color input. Blank or invalid entries revert to the last value on blur. */
+function ColorInput({ id, value, onChange, disabled }: ColorInputProps) {
+  const [text, setText] = useState(value);
+
+  function commit() {
+    const next = text.trim();
+    if (next === "" || !isValidCssColor(next)) {
+      setText(value);
+      return;
+    }
+    onChange(next);
+  }
+
+  return (
+    <input
+      id={id}
+      type="text"
+      value={text}
+      disabled={disabled}
+      onChange={(e) => setText(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") e.currentTarget.blur();
+      }}
+      style={{ ...textInputStyle, opacity: disabled ? 0.4 : 1 }}
+    />
+  );
+}
+
 export function ControlsBar({
   mode,
   width,
@@ -219,6 +268,14 @@ export function ControlsBar({
   imgHeight,
   bg,
   select,
+  invert,
+  blur,
+  dense,
+  monochrome,
+  fontColor,
+  hasFile,
+  analyzing,
+  onAuto,
   onWidthChange,
   onContrastChange,
   onBrightnessChange,
@@ -231,6 +288,11 @@ export function ControlsBar({
   onImgHeightChange,
   onBgChange,
   onSelectChange,
+  onInvertChange,
+  onBlurChange,
+  onDenseChange,
+  onMonochromeChange,
+  onFontColorChange,
 }: ControlsBarProps) {
   return (
     <div
@@ -245,6 +307,24 @@ export function ControlsBar({
         marginTop: 18,
       }}
     >
+      <div style={{ flex: "1 1 100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+        <span style={{ ...labelStyle, marginBottom: 0 }}>
+          Enhance — Contrast / Brightness / Saturate / Min luminance
+        </span>
+        <button
+          type="button"
+          onClick={onAuto}
+          disabled={!hasFile || analyzing}
+          style={{
+            ...segButtonStyle(false),
+            opacity: !hasFile || analyzing ? 0.4 : 1,
+            cursor: !hasFile || analyzing ? "default" : "pointer",
+          }}
+        >
+          {analyzing ? "Analyzing…" : "Auto"}
+        </button>
+      </div>
+
       <SliderField
         id="width-slider"
         label={`Width — ${width} cols`}
@@ -315,6 +395,32 @@ export function ControlsBar({
         onChange={onFontSizeChange}
       />
 
+      <SliderField
+        id="blur-slider"
+        label={`Blur — ${blur.toFixed(1)}px`}
+        value={blur}
+        min={0}
+        max={25}
+        step={0.5}
+        onChange={onBlurChange}
+      />
+
+      <div style={{ flex: "1 1 160px", display: "flex", alignItems: "flex-end" }}>
+        <label
+          htmlFor="invert-checkbox"
+          style={{ ...labelStyle, marginBottom: 0, display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}
+        >
+          <input
+            id="invert-checkbox"
+            type="checkbox"
+            checked={invert}
+            onChange={(e) => onInvertChange(e.target.checked)}
+            style={{ accentColor: COLORS.accent }}
+          />
+          Invert colors
+        </label>
+      </div>
+
       {mode === "ascii" && (
         <>
           <SliderField
@@ -356,6 +462,51 @@ export function ControlsBar({
               />
               Select highlight
             </label>
+          </div>
+
+          <div style={{ flex: "1 1 160px", display: "flex", alignItems: "flex-end" }}>
+            <label
+              htmlFor="dense-checkbox"
+              style={{ ...labelStyle, marginBottom: 0, display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}
+            >
+              <input
+                id="dense-checkbox"
+                type="checkbox"
+                checked={dense}
+                onChange={(e) => onDenseChange(e.target.checked)}
+                style={{ accentColor: COLORS.accent }}
+              />
+              Dense (cap width to 100)
+            </label>
+          </div>
+
+          <div style={{ flex: "1 1 160px", display: "flex", alignItems: "flex-end" }}>
+            <label
+              htmlFor="monochrome-checkbox"
+              style={{ ...labelStyle, marginBottom: 0, display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}
+            >
+              <input
+                id="monochrome-checkbox"
+                type="checkbox"
+                checked={monochrome}
+                onChange={(e) => onMonochromeChange(e.target.checked)}
+                style={{ accentColor: COLORS.accent }}
+              />
+              Monochrome
+            </label>
+          </div>
+
+          <div style={{ flex: "1 1 160px" }}>
+            <label htmlFor="font-color-input" style={{ ...labelStyle, opacity: monochrome ? 1 : 0.4 }}>
+              Font color
+            </label>
+            <ColorInput
+              key={`font-color:${fontColor}`}
+              id="font-color-input"
+              value={fontColor}
+              onChange={onFontColorChange}
+              disabled={!monochrome}
+            />
           </div>
         </>
       )}

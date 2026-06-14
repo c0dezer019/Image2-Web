@@ -6,26 +6,42 @@ import { ControlsBar } from "@/components/ControlsBar";
 import { OutputHeader } from "@/components/OutputHeader";
 import { OutputCanvas } from "@/components/OutputCanvas";
 import { BG_HEX, COLORS, FONT_MONO } from "@/lib/theme";
-import { convertImage } from "@/lib/convert";
+import { convertImage, effectiveFontSize, getAutoParams } from "@/lib/convert";
 import { drawAsciiGrid, drawAnsiGrid } from "@/lib/canvas-render";
 import { downloadCanvasPng, downloadText } from "@/lib/export";
 import type { AnsiPalette, AnsiResult, AsciiResult, OutputMode } from "@/lib/types";
+
+// Old fixed enhancement defaults (image2 CLI's --no-auto values). Used as
+// the initial state before any image is analyzed, and as a fallback if
+// auto-detection fails.
+const FIXED_ENHANCE_DEFAULTS = {
+  contrast: 1.5,
+  brightness: 1.0,
+  saturate: 1.0,
+  minLum: 0.0,
+};
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [mode, setMode] = useState<OutputMode>("ascii");
   const [width, setWidth] = useState(100);
-  const [contrast, setContrast] = useState(1.5);
-  const [brightness, setBrightness] = useState(1.0);
+  const [contrast, setContrast] = useState(FIXED_ENHANCE_DEFAULTS.contrast);
+  const [brightness, setBrightness] = useState(FIXED_ENHANCE_DEFAULTS.brightness);
   const [sharpness, setSharpness] = useState(2.5);
-  const [saturate, setSaturate] = useState(1.0);
-  const [minLum, setMinLum] = useState(0.0);
+  const [saturate, setSaturate] = useState(FIXED_ENHANCE_DEFAULTS.saturate);
+  const [minLum, setMinLum] = useState(FIXED_ENHANCE_DEFAULTS.minLum);
+  const [analyzing, setAnalyzing] = useState(false);
   const [fontSize, setFontSize] = useState(6);
   const [palette, setPalette] = useState<AnsiPalette>("truecolor");
   const [imgWidth, setImgWidth] = useState(0);
   const [imgHeight, setImgHeight] = useState(0);
   const [bg, setBg] = useState(BG_HEX);
   const [select, setSelect] = useState(false);
+  const [invert, setInvert] = useState(false);
+  const [blur, setBlur] = useState(0);
+  const [dense, setDense] = useState(false);
+  const [monochrome, setMonochrome] = useState(false);
+  const [fontColor, setFontColor] = useState("#ffffff");
   const [result, setResult] = useState<AsciiResult | AnsiResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -33,11 +49,14 @@ export default function Home() {
   const requestIdRef = useRef(0);
 
   useEffect(() => {
-    if (!file) return;
+    // Skip while auto-params are being derived for a newly uploaded image —
+    // otherwise this fires once with the stale enhancement values and again
+    // once analysis lands, producing a visible flash.
+    if (!file || analyzing) return;
     const id = ++requestIdRef.current;
     const params = {
       mode, width, contrast, brightness, sharpness, saturate, minLum,
-      fontSize, palette, imgWidth, imgHeight,
+      fontSize, palette, imgWidth, imgHeight, invert, blur, dense,
     };
     const timer = setTimeout(() => {
       setError(null);
@@ -53,27 +72,63 @@ export default function Home() {
         });
     }, 250);
     return () => clearTimeout(timer);
-  }, [file, mode, width, contrast, brightness, sharpness, saturate, minLum, fontSize, palette, imgWidth, imgHeight]);
+  }, [file, analyzing, mode, width, contrast, brightness, sharpness, saturate, minLum, fontSize, palette, imgWidth, imgHeight, invert, blur, dense]);
 
   useEffect(() => {
     if (!result || !canvasRef.current) return;
     const ctx = canvasRef.current.getContext("2d");
     if (!ctx) return;
     if (mode === "ascii") {
-      drawAsciiGrid(ctx, result as AsciiResult, fontSize, bg, select);
+      // image2 CLI's `--min` (dense mode) caps rendered font size to 8px.
+      const renderFontSize = effectiveFontSize(fontSize, dense);
+      drawAsciiGrid(ctx, result as AsciiResult, renderFontSize, bg, select, monochrome, fontColor);
     } else {
       drawAnsiGrid(ctx, result as AnsiResult, fontSize);
     }
-  }, [result, mode, fontSize, bg, select]);
+  }, [result, mode, fontSize, bg, select, monochrome, fontColor, dense]);
+
+  const runAutoParams = useCallback((f: Blob) => {
+    setAnalyzing(true);
+    // invert/blur are pre-processing applied before auto-detect, mirroring
+    // the CLI's pipeline order — pass the current values so auto-detect
+    // reflects them.
+    getAutoParams(f, invert, blur)
+      .then((auto) => {
+        setContrast(auto.contrast);
+        setBrightness(auto.brightness);
+        setSaturate(auto.saturate);
+        setMinLum(auto.minLum);
+      })
+      .catch(() => {
+        // Auto-detection failed (e.g. server unreachable) — fall back to
+        // the old fixed defaults rather than leaving stale values.
+        setContrast(FIXED_ENHANCE_DEFAULTS.contrast);
+        setBrightness(FIXED_ENHANCE_DEFAULTS.brightness);
+        setSaturate(FIXED_ENHANCE_DEFAULTS.saturate);
+        setMinLum(FIXED_ENHANCE_DEFAULTS.minLum);
+      })
+      .finally(() => setAnalyzing(false));
+  }, [invert, blur]);
 
   const handleFile = useCallback((f: File) => {
     setFile(f);
     setError(null);
-  }, []);
+    runAutoParams(f);
+  }, [runAutoParams]);
+
+  const handleAuto = useCallback(() => {
+    if (!file) return;
+    runAutoParams(file);
+  }, [file, runAutoParams]);
 
   const handleFontSizeChange = useCallback((n: number) => {
     if (!Number.isFinite(n)) return;
     setFontSize(Math.max(1, n));
+  }, []);
+
+  const handleBlurChange = useCallback((n: number) => {
+    if (!Number.isFinite(n)) return;
+    setBlur(Math.min(Math.max(0, n), 25));
   }, []);
 
   function handleCopy() {
@@ -173,6 +228,14 @@ export default function Home() {
           imgHeight={imgHeight}
           bg={bg}
           select={select}
+          invert={invert}
+          blur={blur}
+          dense={dense}
+          monochrome={monochrome}
+          fontColor={fontColor}
+          hasFile={!!file}
+          analyzing={analyzing}
+          onAuto={handleAuto}
           onWidthChange={(n) => {
             if (!Number.isFinite(n)) return;
             setWidth(Math.max(1, Math.round(n)));
@@ -188,6 +251,11 @@ export default function Home() {
           onImgHeightChange={setImgHeight}
           onBgChange={setBg}
           onSelectChange={setSelect}
+          onInvertChange={setInvert}
+          onBlurChange={handleBlurChange}
+          onDenseChange={setDense}
+          onMonochromeChange={setMonochrome}
+          onFontColorChange={setFontColor}
         />
 
         <OutputHeader
