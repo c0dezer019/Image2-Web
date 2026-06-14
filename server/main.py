@@ -25,9 +25,9 @@ app.add_middleware(
 )
 
 VALID_PALETTES = ("truecolor", "256", "bbs16")
-MAX_OUTPUT_COLS = 400
-MAX_OUTPUT_ROWS = 400
-MAX_OUTPUT_CELLS = 120_000
+MAX_OUTPUT_COLS = 600
+MAX_OUTPUT_ROWS = 600
+MAX_OUTPUT_CELLS = 250_000
 
 
 @app.get("/health")

@@ -11,6 +11,30 @@ const SERVER_URL = process.env.NEXT_PUBLIC_IMAGE2_SERVER_URL || "http://localhos
 // (`apply_min_cap(width, 100, args.min)`).
 const DENSE_WIDTH_CAP = 100;
 
+// Mirrors server/main.py's `_validate_output_size` limits. The "Image
+// width/height" controls reflect the source image's real pixel dimensions
+// (see app/page.tsx's handleFile), which can translate to a cols/rows grid
+// larger than the server allows — especially at small font sizes. Clamp the
+// requested grid down to fit (preserving its aspect ratio) so conversions
+// never 422 with "Output dimensions exceed server limits"; the output is
+// simply capped at the largest size the server permits.
+const MAX_OUTPUT_COLS = 600;
+const MAX_OUTPUT_ROWS = 600;
+const MAX_OUTPUT_CELLS = 250_000;
+
+function clampOutputSize(cols: number, rows: number): { cols: number; rows: number } {
+  let scale = 1;
+  if (cols > MAX_OUTPUT_COLS) scale = Math.min(scale, MAX_OUTPUT_COLS / cols);
+  if (rows > MAX_OUTPUT_ROWS) scale = Math.min(scale, MAX_OUTPUT_ROWS / rows);
+  if (cols * rows > MAX_OUTPUT_CELLS) {
+    scale = Math.min(scale, Math.sqrt(MAX_OUTPUT_CELLS / (cols * rows)));
+  }
+  return {
+    cols: Math.max(1, Math.floor(cols * scale)),
+    rows: Math.max(1, Math.floor(rows * scale)),
+  };
+}
+
 // image2 CLI's `--min` (dense mode) also caps the rendered font size to 8px
 // for PNG-style output (`apply_min_cap(font_size, 8, args.min)`). This app's
 // canvas output is PNG-like, so the same cap is used for both grid-size
@@ -80,6 +104,24 @@ export async function convertImage(
     }
     // image2 CLI's `--min` (dense mode): only lowers, never raises.
     if (params.dense) width = Math.min(width, DENSE_WIDTH_CAP);
+
+    if (imgHeightRows > 0) {
+      ({ cols: width, rows: imgHeightRows } = clampOutputSize(width, imgHeightRows));
+    } else {
+      width = Math.min(width, MAX_OUTPUT_COLS);
+    }
+  } else {
+    // ANSI mode doesn't send img_height, so the server estimates rows from
+    // the source image's aspect ratio (cell_aspect=1.0, halved for ANSI's
+    // double-height cells). Mirror that estimate here using imgWidth/imgHeight
+    // (preserved through any client-side compression) to clamp consistently.
+    if (params.imgWidth > 0 && params.imgHeight > 0) {
+      const aspect = params.imgHeight / params.imgWidth;
+      const estimatedRows = Math.max(1, Math.round((width * aspect) / 2));
+      ({ cols: width } = clampOutputSize(width, estimatedRows));
+    } else {
+      width = Math.min(width, MAX_OUTPUT_COLS);
+    }
   }
 
   const form = new FormData();
