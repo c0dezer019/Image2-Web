@@ -100,7 +100,7 @@ export async function compressImageIfNeeded(file: File): Promise<File> {
   let { width, height } = computeScaledDimensions(img.naturalWidth, img.naturalHeight, MAX_DIMENSION);
 
   let bestBlob: Blob | null = null;
-  let bestMime = file.type;
+  let bestMime = "";
 
   for (let round = 0; round < MAX_SCALE_ROUNDS; round++) {
     canvas.width = width;
@@ -112,10 +112,12 @@ export async function compressImageIfNeeded(file: File): Promise<File> {
 
     while (true) {
       const blob = await canvasToBlob(canvas, mime, quality);
-      bestBlob = blob;
-      bestMime = mime;
       if (blob.size <= TARGET_BYTES) {
         return blobToFile(blob, file.name, mime);
+      }
+      if (!bestBlob || blob.size < bestBlob.size) {
+        bestBlob = blob;
+        bestMime = mime;
       }
 
       if (quality !== undefined) {
