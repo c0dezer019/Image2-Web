@@ -8,6 +8,7 @@ import { OutputCanvas } from "@/components/OutputCanvas";
 import { BG_HEX, COLORS, FONT_MONO } from "@/lib/theme";
 import { convertImage, effectiveFontSize, getAutoParams } from "@/lib/convert";
 import { getImageDimensions } from "@/lib/image-dimensions";
+import { compressImageIfNeeded } from "@/lib/image-compress";
 import { drawAsciiGrid, drawAnsiGrid } from "@/lib/canvas-render";
 import { downloadCanvasPng, downloadText } from "@/lib/export";
 import type { AnsiPalette, AnsiResult, AsciiResult, OutputMode } from "@/lib/types";
@@ -32,6 +33,7 @@ export default function Home() {
   const [saturate, setSaturate] = useState(FIXED_ENHANCE_DEFAULTS.saturate);
   const [minLum, setMinLum] = useState(FIXED_ENHANCE_DEFAULTS.minLum);
   const [analyzing, setAnalyzing] = useState(false);
+  const [optimizing, setOptimizing] = useState(false);
   const [fontSize, setFontSize] = useState(6);
   const [palette, setPalette] = useState<AnsiPalette>("truecolor");
   const [imgWidth, setImgWidth] = useState(0);
@@ -53,7 +55,7 @@ export default function Home() {
     // Skip while auto-params are being derived for a newly uploaded image —
     // otherwise this fires once with the stale enhancement values and again
     // once analysis lands, producing a visible flash.
-    if (!file || analyzing) return;
+    if (!file || analyzing || optimizing) return;
     const id = ++requestIdRef.current;
     const params = {
       mode, width, contrast, brightness, sharpness, saturate, minLum,
@@ -73,7 +75,7 @@ export default function Home() {
         });
     }, 250);
     return () => clearTimeout(timer);
-  }, [file, analyzing, mode, width, contrast, brightness, sharpness, saturate, minLum, fontSize, palette, imgWidth, imgHeight, invert, blur, dense]);
+  }, [file, analyzing, optimizing, mode, width, contrast, brightness, sharpness, saturate, minLum, fontSize, palette, imgWidth, imgHeight, invert, blur, dense]);
 
   useEffect(() => {
     if (!result || !canvasRef.current) return;
@@ -112,18 +114,29 @@ export default function Home() {
   }, [invert, blur]);
 
   const handleFile = useCallback((f: File) => {
-    setFile(f);
     setError(null);
-    runAutoParams(f);
     // Pre-fill the Image width/height controls with the source image's real
     // pixel dimensions, mirroring the image2 CLI's use of the actual image
-    // size when deriving cols/rows. Leave them at "auto" (0) if probing fails.
+    // size when deriving cols/rows. Read from the original file, before any
+    // compression, so these always reflect the true source size. Leave them
+    // at "auto" (0) if probing fails.
     getImageDimensions(f)
       .then(({ width, height }) => {
         setImgWidth(width);
         setImgHeight(height);
       })
       .catch(() => {});
+
+    setOptimizing(true);
+    compressImageIfNeeded(f)
+      .then((compressed) => {
+        setFile(compressed);
+        runAutoParams(compressed);
+      })
+      .catch(() => {
+        setError("Could not process image");
+      })
+      .finally(() => setOptimizing(false));
   }, [runAutoParams]);
 
   const handleAuto = useCallback(() => {
@@ -245,6 +258,7 @@ export default function Home() {
           fontColor={fontColor}
           hasFile={!!file}
           analyzing={analyzing}
+          optimizing={optimizing}
           onAuto={handleAuto}
           onWidthChange={(n) => {
             if (!Number.isFinite(n)) return;

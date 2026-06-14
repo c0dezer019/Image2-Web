@@ -25,6 +25,7 @@ interface ControlsBarProps {
   fontColor: string;
   hasFile: boolean;
   analyzing: boolean;
+  optimizing: boolean;
   onAuto: () => void;
   onWidthChange: (n: number) => void;
   onContrastChange: (n: number) => void;
@@ -275,6 +276,7 @@ export function ControlsBar({
   fontColor,
   hasFile,
   analyzing,
+  optimizing,
   onAuto,
   onWidthChange,
   onContrastChange,
@@ -314,14 +316,14 @@ export function ControlsBar({
         <button
           type="button"
           onClick={onAuto}
-          disabled={!hasFile || analyzing}
+          disabled={!hasFile || analyzing || optimizing}
           style={{
             ...segButtonStyle(false),
-            opacity: !hasFile || analyzing ? 0.4 : 1,
-            cursor: !hasFile || analyzing ? "default" : "pointer",
+            opacity: !hasFile || analyzing || optimizing ? 0.4 : 1,
+            cursor: !hasFile || analyzing || optimizing ? "default" : "pointer",
           }}
         >
-          {analyzing ? "Analyzing…" : "Auto"}
+          {optimizing ? "Optimizing…" : analyzing ? "Analyzing…" : "Auto"}
         </button>
       </div>
 
