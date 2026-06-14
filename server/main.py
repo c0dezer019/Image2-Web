@@ -15,6 +15,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://image2-web-seven.vercel.app",
+        "https://image2-*-the-app-foundry.vercel.app",
+        "htps://image2.theappfoundry.tech",
         "https://image2-web.theappfoundry.tech",
         "http://localhost:3000",
     ],
