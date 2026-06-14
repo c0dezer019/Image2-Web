@@ -7,6 +7,7 @@ import { OutputHeader } from "@/components/OutputHeader";
 import { OutputCanvas } from "@/components/OutputCanvas";
 import { BG_HEX, COLORS, FONT_MONO } from "@/lib/theme";
 import { convertImage, effectiveFontSize, getAutoParams } from "@/lib/convert";
+import { getImageDimensions } from "@/lib/image-dimensions";
 import { drawAsciiGrid, drawAnsiGrid } from "@/lib/canvas-render";
 import { downloadCanvasPng, downloadText } from "@/lib/export";
 import type { AnsiPalette, AnsiResult, AsciiResult, OutputMode } from "@/lib/types";
@@ -114,6 +115,15 @@ export default function Home() {
     setFile(f);
     setError(null);
     runAutoParams(f);
+    // Pre-fill the Image width/height controls with the source image's real
+    // pixel dimensions, mirroring the image2 CLI's use of the actual image
+    // size when deriving cols/rows. Leave them at "auto" (0) if probing fails.
+    getImageDimensions(f)
+      .then(({ width, height }) => {
+        setImgWidth(width);
+        setImgHeight(height);
+      })
+      .catch(() => {});
   }, [runAutoParams]);
 
   const handleAuto = useCallback(() => {
