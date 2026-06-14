@@ -17,9 +17,9 @@ describe("validateImageFile", () => {
     expect(result.error).toMatch(/PNG, JPG, GIF, or WebP/);
   });
 
-  it("rejects files over 10MB", () => {
-    const result = validateImageFile(makeFile("a.png", "image/png", 11 * 1024 * 1024));
+  it("rejects files over 50MB", () => {
+    const result = validateImageFile(makeFile("a.png", "image/png", 51 * 1024 * 1024));
     expect(result.ok).toBe(false);
-    expect(result.error).toMatch(/10MB/);
+    expect(result.error).toMatch(/50MB/);
   });
 });
