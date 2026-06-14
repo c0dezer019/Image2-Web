@@ -23,9 +23,15 @@ origin there before deploying.
 
 ## Wiring up the Next.js app
 
-Set `IMAGE2_SERVER_URL` to the deployed server's base URL (e.g.
-`https://image2-server.fly.dev`) as a Vercel environment variable. The
-`/api/convert` route (`app/api/convert/route.ts`) proxies to
-`${IMAGE2_SERVER_URL}/convert/:mode`.
+The browser calls the FastAPI server directly (`lib/convert.ts`) — image
+uploads no longer go through a Next.js API route. This avoids Vercel
+Functions' 4.5MB request body limit, which 413'd on larger images when the
+upload was proxied through `/api/analyze` and `/api/convert`.
 
-Local dev defaults to `http://localhost:8000` if `IMAGE2_SERVER_URL` is unset.
+Set `NEXT_PUBLIC_IMAGE2_SERVER_URL` to the deployed server's base URL (e.g.
+`https://image2-server.fly.dev`) as a Vercel environment variable. Since it's
+exposed to the client, ensure the URL is the public CORS-allowed origin from
+`server/main.py` and add any new frontend origin there before deploying.
+
+Local dev defaults to `http://localhost:8000` if `NEXT_PUBLIC_IMAGE2_SERVER_URL`
+is unset.

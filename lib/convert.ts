@@ -1,6 +1,12 @@
 import { charCellSize } from "./canvas-render";
 import type { AnsiResult, AsciiResult, AutoParams, ConvertParams } from "./types";
 
+// Calls go straight to the image2 FastAPI server, bypassing Next.js API
+// routes. Vercel Functions cap request bodies at 4.5MB, which 413s on
+// larger image uploads; the Python server has no such limit and already
+// allows this app's origins via CORS (see server/main.py).
+const SERVER_URL = process.env.NEXT_PUBLIC_IMAGE2_SERVER_URL || "http://localhost:8000";
+
 // image2 CLI's `--min` (dense mode) caps ascii output width to 100 cols
 // (`apply_min_cap(width, 100, args.min)`).
 const DENSE_WIDTH_CAP = 100;
@@ -33,14 +39,14 @@ export async function getAutoParams(file: Blob, invert: boolean, blur: number): 
   form.append("invert", String(invert));
   form.append("blur", String(blur));
 
-  const res = await fetch("/api/analyze", {
+  const res = await fetch(`${SERVER_URL}/analyze`, {
     method: "POST",
     body: form,
   });
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || `Analyze failed (${res.status})`);
+    throw new Error(body.detail || `Analyze failed (${res.status})`);
   }
 
   const data = await res.json();
@@ -92,14 +98,14 @@ export async function convertImage(
     form.append("img_height", String(imgHeightRows));
   }
 
-  const res = await fetch(`/api/convert?mode=${params.mode}`, {
+  const res = await fetch(`${SERVER_URL}/convert/${params.mode}`, {
     method: "POST",
     body: form,
   });
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || `Conversion failed (${res.status})`);
+    throw new Error(body.detail || `Conversion failed (${res.status})`);
   }
 
   return res.json();
