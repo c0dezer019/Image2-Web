@@ -12,6 +12,9 @@ RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 FROM python:3.14-slim
 
+ARG GIT_SHA=dev
+ENV IMAGE2_SERVER_VERSION=$GIT_SHA
+
 WORKDIR /app
 
 RUN apt-get update \
