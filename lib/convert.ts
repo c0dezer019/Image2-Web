@@ -5,7 +5,7 @@ import type { AnsiResult, AsciiResult, AutoParams, ConvertParams } from "./types
 // routes. Vercel Functions cap request bodies at 4.5MB, which 413s on
 // larger image uploads; the Python server has no such limit and already
 // allows this app's origins via CORS (see server/main.py).
-const SERVER_URL = (process.env.NEXT_PUBLIC_IMAGE2_SERVER_URL 
+const SERVER_URL = (process.env.NEXT_PUBLIC_IMAGE2_SERVER_URL
   || process.env.NEXT_DEV_IMAGE2_SERVER_URL) || "http://localhost:8000";
 
 // Short commit SHA for the deployed frontend build, set via next.config.ts
