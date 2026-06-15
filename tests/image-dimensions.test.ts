@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getImageDimensions } from "./image-dimensions";
+import { getImageDimensions } from "../lib/image-dimensions";
 
 class MockImage {
   naturalWidth = 0;
