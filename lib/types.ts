@@ -57,6 +57,6 @@ export interface ConvertParams {
   imgHeight: number;
   invert: boolean;
   blur: number;
-  /** Dense mode (image2 CLI's `--min`): caps ascii width to 100 cols. Ascii-only. */
+  /** Min mode (image2 CLI's `--min`): caps rendered font size to 8px. Ascii-only. */
   dense: boolean;
 }

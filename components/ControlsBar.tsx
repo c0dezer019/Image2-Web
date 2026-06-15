@@ -558,7 +558,7 @@ export function ControlsBar({
                 onChange={(e) => onDenseChange(e.target.checked)}
                 style={{ accentColor: COLORS.accent }}
               />
-              Dense (cap width to 100)
+              Min mode
             </label>
           </div>
 
