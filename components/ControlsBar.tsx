@@ -460,29 +460,34 @@ export function ControlsBar({
           />
 
           <div style={{ flex: "0 0 auto", display: "flex", alignItems: "flex-end", paddingBottom: 8 }}>
-            <label
-              htmlFor="lock-aspect-checkbox"
-              style={{
-                ...labelStyle,
-                marginBottom: 0,
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                cursor: sourceAspectRatio === null && (imgWidth === 0 || imgHeight === 0) ? "default" : "pointer",
-                opacity: sourceAspectRatio === null && (imgWidth === 0 || imgHeight === 0) ? 0.4 : 1,
-              }}
-              title="Lock width/height to an aspect ratio"
-            >
-              <input
-                id="lock-aspect-checkbox"
-                type="checkbox"
-                checked={lockAspect}
-                disabled={sourceAspectRatio === null && (imgWidth === 0 || imgHeight === 0)}
-                onChange={(e) => onLockAspectChange(e.target.checked)}
-                style={{ accentColor: COLORS.accent }}
-              />
-              🔗 Lock ratio
-            </label>
+            {(() => {
+              const lockDisabled = sourceAspectRatio === null && (imgWidth === 0 || imgHeight === 0);
+              return (
+                <label
+                  htmlFor="lock-aspect-checkbox"
+                  style={{
+                    ...labelStyle,
+                    marginBottom: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    cursor: lockDisabled ? "default" : "pointer",
+                    opacity: lockDisabled ? 0.4 : 1,
+                  }}
+                  title="Lock width/height to an aspect ratio"
+                >
+                  <input
+                    id="lock-aspect-checkbox"
+                    type="checkbox"
+                    checked={lockAspect}
+                    disabled={lockDisabled}
+                    onChange={(e) => onLockAspectChange(e.target.checked)}
+                    style={{ accentColor: COLORS.accent }}
+                  />
+                  🔗 Lock ratio
+                </label>
+              );
+            })()}
           </div>
 
           <SliderField
