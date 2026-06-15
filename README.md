@@ -11,6 +11,12 @@ Two parts:
 - **Server** (`server/`) — FastAPI/Python image-conversion service. Separate
   deploy, not part of the Vercel build (see `.vercelignore`).
 
+## Examples
+<img width="2046" height="2043" alt="hangar_ascii" src="https://github.com/user-attachments/assets/0dfde013-33bb-4d30-b06f-5f725bcaf0b1" />
+<img width="2052" height="2050" alt="hanger_ascii" src="https://github.com/user-attachments/assets/e3a2802d-c99e-496e-9c7d-3bdbf9ff5de7" />
+<img width="2909" height="1626" alt="image2_ascii" src="https://github.com/user-attachments/assets/9856d07b-9272-4429-b4ff-3345f41ff152" />
+<img width="570" height="532" alt="hanger_ansi" src="https://github.com/user-attachments/assets/8b78cfdd-995d-412f-b1a0-9370848179b8" />
+
 ## Getting Started
 
 Frontend:
