@@ -14,6 +14,7 @@ import { compressImageIfNeeded } from "@/lib/image-compress";
 import { drawAsciiGrid, drawAnsiGrid } from "@/lib/canvas-render";
 import { downloadCanvasPng, downloadText } from "@/lib/export";
 import type { AnsiPalette, AnsiResult, AsciiResult, OutputMode } from "@/lib/types";
+import { heightForWidth, widthForHeight, type AspectRatioPreset } from "@/lib/aspect-ratio";
 
 // Old fixed enhancement defaults (image2 CLI's --no-auto values). Used as
 // the initial state before any image is analyzed, and as a fallback if
@@ -40,6 +41,9 @@ export default function Home() {
   const [palette, setPalette] = useState<AnsiPalette>("truecolor");
   const [imgWidth, setImgWidth] = useState(0);
   const [imgHeight, setImgHeight] = useState(0);
+  const [sourceWidth, setSourceWidth] = useState(0);
+  const [sourceHeight, setSourceHeight] = useState(0);
+  const [targetAspectRatio, setTargetAspectRatio] = useState<number | null>(null);
   const [bg, setBg] = useState(BG_HEX);
   const [select, setSelect] = useState(false);
   const [invert, setInvert] = useState(false);
@@ -52,6 +56,8 @@ export default function Home() {
   const [copied, setCopied] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const requestIdRef = useRef(0);
+
+  const sourceAspectRatio = sourceWidth > 0 && sourceHeight > 0 ? sourceWidth / sourceHeight : null;
 
   useEffect(() => {
     // Skip while auto-params are being derived for a newly uploaded image —
@@ -126,8 +132,17 @@ export default function Home() {
       .then(({ width, height }) => {
         setImgWidth(width);
         setImgHeight(height);
+        setSourceWidth(width);
+        setSourceHeight(height);
+        // New image — drop any AR lock from the previous image rather than
+        // applying a stale ratio to it.
+        setTargetAspectRatio(null);
       })
-      .catch(() => {});
+      .catch(() => {
+        setSourceWidth(0);
+        setSourceHeight(0);
+        setTargetAspectRatio(null);
+      });
 
     setOptimizing(true);
     compressImageIfNeeded(f)
@@ -155,6 +170,49 @@ export default function Home() {
     if (!Number.isFinite(n)) return;
     setBlur(Math.min(Math.max(0, n), 25));
   }, []);
+
+  const handleImgWidthChange = useCallback((n: number) => {
+    if (!Number.isFinite(n) || n < 0) return;
+    const next = Math.round(n);
+    setImgWidth(next);
+    if (targetAspectRatio !== null) {
+      setImgHeight(heightForWidth(next, targetAspectRatio));
+    }
+  }, [targetAspectRatio]);
+
+  const handleImgHeightChange = useCallback((n: number) => {
+    if (!Number.isFinite(n) || n < 0) return;
+    const next = Math.round(n);
+    setImgHeight(next);
+    if (targetAspectRatio !== null) {
+      setImgWidth(widthForHeight(next, targetAspectRatio));
+    }
+  }, [targetAspectRatio]);
+
+  const handleLockAspectChange = useCallback((locked: boolean) => {
+    if (!locked) {
+      setTargetAspectRatio(null);
+      return;
+    }
+    const ratio = sourceAspectRatio ?? (imgWidth > 0 && imgHeight > 0 ? imgWidth / imgHeight : null);
+    if (ratio === null) return;
+    setTargetAspectRatio(ratio);
+  }, [sourceAspectRatio, imgWidth, imgHeight]);
+
+  const handleAspectPresetChange = useCallback((preset: AspectRatioPreset) => {
+    const ratio = preset.ratio ?? sourceAspectRatio;
+    if (ratio === null) return;
+
+    // If either field is "auto" (0), seed from the source image's pixel
+    // dimensions before applying the ratio.
+    const baseWidth = imgWidth === 0 || imgHeight === 0 ? sourceWidth : imgWidth;
+
+    setTargetAspectRatio(ratio);
+    if (baseWidth > 0) {
+      setImgWidth(baseWidth);
+      setImgHeight(heightForWidth(baseWidth, ratio));
+    }
+  }, [imgWidth, imgHeight, sourceWidth, sourceAspectRatio]);
 
   function handleCopy() {
     if (!result) return;
@@ -251,6 +309,9 @@ export default function Home() {
           palette={palette}
           imgWidth={imgWidth}
           imgHeight={imgHeight}
+          lockAspect={targetAspectRatio !== null}
+          targetAspectRatio={targetAspectRatio}
+          sourceAspectRatio={sourceAspectRatio}
           bg={bg}
           select={select}
           invert={invert}
@@ -273,8 +334,10 @@ export default function Home() {
           onMinLumChange={setMinLum}
           onFontSizeChange={handleFontSizeChange}
           onPaletteChange={setPalette}
-          onImgWidthChange={setImgWidth}
-          onImgHeightChange={setImgHeight}
+          onImgWidthChange={handleImgWidthChange}
+          onImgHeightChange={handleImgHeightChange}
+          onLockAspectChange={handleLockAspectChange}
+          onAspectPresetChange={handleAspectPresetChange}
           onBgChange={setBg}
           onSelectChange={setSelect}
           onInvertChange={setInvert}
