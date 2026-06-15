@@ -6,6 +6,7 @@ import { ControlsBar } from "@/components/ControlsBar";
 import { OutputHeader } from "@/components/OutputHeader";
 import { OutputCanvas } from "@/components/OutputCanvas";
 import { VersionFooter } from "@/components/VersionFooter";
+import { Footer } from "@/components/Footer";
 import { BG_HEX, COLORS, FONT_MONO } from "@/lib/theme";
 import { convertImage, effectiveFontSize, getAutoParams } from "@/lib/convert";
 import { getImageDimensions } from "@/lib/image-dimensions";
@@ -296,6 +297,7 @@ export default function Home() {
         <OutputCanvas ref={canvasRef} hasOutput={!!result} errorMessage={error} />
 
         <VersionFooter />
+        <Footer />
       </div>
     </div>
   );
