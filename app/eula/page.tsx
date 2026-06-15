@@ -15,8 +15,10 @@ export default function EulaPage() {
         <div style={SECTION_LABEL_STYLE}>01 / License Grant</div>
         <p style={P_STYLE}>
           The App Foundry grants you a limited, non-exclusive, non-transferable,
-          revocable license to access and use Image2 for your personal,
-          non-commercial purposes, subject to these Terms.
+          revocable license to access and use Image2, including for producing
+          outputs used in commercial projects, subject to these Terms. You may
+          not resell, sublicense, or provide the Service as a component of your
+          own product or service offering to third parties.
         </p>
       </section>
 
