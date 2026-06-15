@@ -55,7 +55,6 @@ app.add_middleware(
         "https://image2-*-the-app-foundry.vercel.app",
         "https://image2.theappfoundry.tech",
         "https://image2-web.theappfoundry.tech",
-        "https://image2-pmn5nmlbb-the-app-foundry.vercel.app",
         "http://localhost:3000",
     ],
     allow_methods=["*"],
