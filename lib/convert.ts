@@ -7,6 +7,21 @@ import type { AnsiResult, AsciiResult, AutoParams, ConvertParams } from "./types
 // allows this app's origins via CORS (see server/main.py).
 const SERVER_URL = process.env.NEXT_PUBLIC_IMAGE2_SERVER_URL || "http://localhost:8000";
 
+// Short commit SHA for the deployed frontend build, set via next.config.ts
+// from VERCEL_GIT_COMMIT_SHA. Used alongside the server's /health version
+// (see getServerVersion) to spot frontend/backend deploy mismatches — e.g.
+// a frontend already clamping to the new MAX_OUTPUT_* limits while the
+// server is still running the previous, stricter limits.
+export const CLIENT_VERSION = process.env.NEXT_PUBLIC_APP_VERSION || "dev";
+
+/** Fetches the image2 server's version string from /health, for display alongside CLIENT_VERSION. */
+export async function getServerVersion(): Promise<string> {
+  const res = await fetch(`${SERVER_URL}/health`);
+  if (!res.ok) throw new Error(`Health check failed (${res.status})`);
+  const data = await res.json();
+  return data.version ?? "unknown";
+}
+
 // image2 CLI's `--min` (dense mode) caps ascii output width to 100 cols
 // (`apply_min_cap(width, 100, args.min)`).
 const DENSE_WIDTH_CAP = 100;
@@ -93,6 +108,10 @@ export async function convertImage(
 
   let width = Math.max(1, Math.round(params.width));
   let imgHeightRows = 0;
+  // Rows the server is expected to derive from `width` (and `img_height` for
+  // ascii). Tracked purely for the request-size log below, so a 422 can be
+  // diagnosed without reproducing the calculation by hand.
+  let estimatedServerRows = 0;
   if (params.mode === "ascii") {
     if (params.imgWidth > 0 && charW > 0) {
       const nextWidth = Math.round(params.imgWidth / charW);
@@ -110,6 +129,7 @@ export async function convertImage(
     } else {
       width = Math.min(width, MAX_OUTPUT_COLS);
     }
+    estimatedServerRows = imgHeightRows;
   } else {
     // ANSI mode doesn't send img_height, so the server estimates rows from
     // the source image's aspect ratio (cell_aspect=1.0, halved for ANSI's
@@ -118,7 +138,7 @@ export async function convertImage(
     if (params.imgWidth > 0 && params.imgHeight > 0) {
       const aspect = params.imgHeight / params.imgWidth;
       const estimatedRows = Math.max(1, Math.round((width * aspect) / 2));
-      ({ cols: width } = clampOutputSize(width, estimatedRows));
+      ({ cols: width, rows: estimatedServerRows } = clampOutputSize(width, estimatedRows));
     } else {
       width = Math.min(width, MAX_OUTPUT_COLS);
     }
@@ -140,6 +160,11 @@ export async function convertImage(
     form.append("img_height", String(imgHeightRows));
   }
 
+  console.debug(
+    `[image2] ${CLIENT_VERSION} convert/${params.mode} request: ` +
+      `cols=${width} rows~=${estimatedServerRows} cells~=${width * estimatedServerRows}`,
+  );
+
   const res = await fetch(`${SERVER_URL}/convert/${params.mode}`, {
     method: "POST",
     body: form,
@@ -147,6 +172,14 @@ export async function convertImage(
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
+    if (res.status === 422) {
+      console.error(
+        `[image2] ${CLIENT_VERSION} convert/${params.mode} 422 from server: ` +
+          `sent cols=${width}, img_height=${imgHeightRows}. ` +
+          `Check server /health "version" — client clamps to ${MAX_OUTPUT_COLS}x${MAX_OUTPUT_ROWS} ` +
+          `/ ${MAX_OUTPUT_CELLS} cells; an older server build may enforce stricter limits.`,
+      );
+    }
     throw new Error(body.detail || `Conversion failed (${res.status})`);
   }
 

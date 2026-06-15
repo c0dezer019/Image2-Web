@@ -11,7 +11,9 @@ client = TestClient(app)
 def test_health():
     res = client.get("/health")
     assert res.status_code == 200
-    assert res.json() == {"status": "ok"}
+    body = res.json()
+    assert body["status"] == "ok"
+    assert "version" in body
 
 
 def _sample_png_bytes(size: tuple[int, int] = (40, 30)) -> bytes:

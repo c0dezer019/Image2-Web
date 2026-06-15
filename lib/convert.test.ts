@@ -71,6 +71,29 @@ describe("convertImage output-size clamping", () => {
     expect(imgHeight).toBe(67);
   });
 
+  it("clamps the reported 2912x1632 image at default settings to within server limits", async () => {
+    // Regression case: a 2912x1632 upload at the default width=100/fontSize=6
+    // was reported as still 422'ing ("Output dimensions exceed server
+    // limits") after the PR #11 clamp. charCellSize(6) -> charW=3.6, charH=6.72,
+    // giving an unclamped grid of ~809x243 (196,587 cells) — over MAX_OUTPUT_COLS
+    // but under MAX_OUTPUT_CELLS, so clampOutputSize scales it down to fit.
+    await convertImage(new Blob(), {
+      ...baseParams,
+      imgWidth: 2912,
+      imgHeight: 1632,
+      fontSize: 6,
+    });
+
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    const form = fetchMock.mock.calls[0][1].body as FormData;
+    const width = Number(form.get("width"));
+    const imgHeight = Number(form.get("img_height"));
+
+    expect(width).toBeLessThanOrEqual(600);
+    expect(imgHeight).toBeLessThanOrEqual(600);
+    expect(width * imgHeight).toBeLessThanOrEqual(250_000);
+  });
+
   it("clamps ansi width using the estimated row count from imgWidth/imgHeight", async () => {
     await convertImage(new Blob(), {
       ...baseParams,
