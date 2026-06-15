@@ -3,13 +3,37 @@ from __future__ import annotations
 import os
 import tempfile
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from PIL import Image, UnidentifiedImageError
+from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.util import get_remote_address
 
 from converters import analyze_image, convert_to_ansi_grid, convert_to_ascii_grid
 
 app = FastAPI(title="image2 server")
+
+# Per-IP rate limits on the compute-heavy endpoints. This is the primary
+# anti-abuse measure: it bounds repeated/scripted requests regardless of
+# image size, while a single large-but-legitimate request (e.g. from the
+# live-preview UI) is unaffected. MAX_OUTPUT_* below remains as a backstop
+# against pathologically large single requests.
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+
+
+def _rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Too many requests. Please slow down and try again shortly."},
+    )
+
+
+app.add_exception_handler(RateLimitExceeded, _rate_limit_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,9 +49,9 @@ app.add_middleware(
 )
 
 VALID_PALETTES = ("truecolor", "256", "bbs16")
-MAX_OUTPUT_COLS = 400
-MAX_OUTPUT_ROWS = 400
-MAX_OUTPUT_CELLS = 120_000
+MAX_OUTPUT_COLS = 600
+MAX_OUTPUT_ROWS = 600
+MAX_OUTPUT_CELLS = 250_000
 
 
 @app.get("/health")
@@ -67,7 +91,9 @@ def _validate_output_size(cols: int, rows: int) -> None:
 
 
 @app.post("/analyze")
+@limiter.limit("20/minute")
 def analyze(
+    request: Request,
     file: UploadFile = File(...),
     invert: bool = Form(False),
     blur: float = Form(0.0, ge=0, le=25),
@@ -82,7 +108,9 @@ def analyze(
 
 
 @app.post("/convert/ascii")
+@limiter.limit("40/minute")
 def convert_ascii(
+    request: Request,
     file: UploadFile = File(...),
     width: int = Form(100, ge=1, le=1000),
     contrast: float = Form(1.5),
@@ -117,7 +145,9 @@ def convert_ascii(
 
 
 @app.post("/convert/ansi")
+@limiter.limit("40/minute")
 def convert_ansi(
+    request: Request,
     file: UploadFile = File(...),
     width: int = Form(80, ge=1, le=1000),
     contrast: float = Form(1.5),
