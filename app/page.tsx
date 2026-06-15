@@ -52,6 +52,7 @@ export default function Home() {
   const [copied, setCopied] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const requestIdRef = useRef(0);
+  const originalFileRef = useRef<File | null>(null);
 
   useEffect(() => {
     // Skip while auto-params are being derived for a newly uploaded image —
@@ -84,7 +85,7 @@ export default function Home() {
     const ctx = canvasRef.current.getContext("2d");
     if (!ctx) return;
     if (mode === "ascii") {
-      // image2 CLI's `--min` (dense mode) caps rendered font size to 8px.
+      // image2 CLI's `--min` (min mode) caps rendered font size to 8px.
       const renderFontSize = effectiveFontSize(fontSize, dense);
       drawAsciiGrid(ctx, result as AsciiResult, renderFontSize, bg, select, monochrome, fontColor);
     } else {
@@ -117,6 +118,7 @@ export default function Home() {
 
   const handleFile = useCallback((f: File) => {
     setError(null);
+    originalFileRef.current = f;
     // Pre-fill the Image width/height controls with the source image's real
     // pixel dimensions, mirroring the image2 CLI's use of the actual image
     // size when deriving cols/rows. Read from the original file, before any
@@ -144,6 +146,17 @@ export default function Home() {
   const handleAuto = useCallback(() => {
     if (!file) return;
     runAutoParams(file);
+    // Reset the Image width/height controls back to the source image's real
+    // pixel dimensions, same as on initial upload.
+    const original = originalFileRef.current;
+    if (original) {
+      getImageDimensions(original)
+        .then(({ width, height }) => {
+          setImgWidth(width);
+          setImgHeight(height);
+        })
+        .catch(() => {});
+    }
   }, [file, runAutoParams]);
 
   const handleFontSizeChange = useCallback((n: number) => {

@@ -23,10 +23,6 @@ export async function getServerVersion(): Promise<string> {
   return data.version ?? "unknown";
 }
 
-// image2 CLI's `--min` (dense mode) caps ascii output width to 100 cols
-// (`apply_min_cap(width, 100, args.min)`).
-const DENSE_WIDTH_CAP = 100;
-
 // Mirrors server/main.py's `_validate_output_size` limits. The "Image
 // width/height" controls reflect the source image's real pixel dimensions
 // (see app/page.tsx's handleFile), which can translate to a cols/rows grid
@@ -51,13 +47,13 @@ function clampOutputSize(cols: number, rows: number): { cols: number; rows: numb
   };
 }
 
-// image2 CLI's `--min` (dense mode) also caps the rendered font size to 8px
-// for PNG-style output (`apply_min_cap(font_size, 8, args.min)`). This app's
+// image2 CLI's `--min` (min mode) caps the rendered font size to 8px for
+// PNG-style output (`apply_min_cap(font_size, 8, args.min)`). This app's
 // canvas output is PNG-like, so the same cap is used for both grid-size
 // calculations and final rendering.
 export const DENSE_FONT_SIZE_CAP = 8;
 
-/** Applies image2 CLI's `--min` dense-mode font-size cap, if enabled. */
+/** Applies image2 CLI's `--min` (min mode) font-size cap, if enabled. */
 export function effectiveFontSize(fontSize: number, dense: boolean): number {
   const safe = Math.max(1, fontSize);
   return dense ? Math.min(safe, DENSE_FONT_SIZE_CAP) : safe;
@@ -102,8 +98,8 @@ export async function convertImage(
   file: Blob,
   params: ConvertParams,
 ): Promise<AsciiResult | AnsiResult> {
-  // image2 CLI's `--min` (dense mode) caps font size to 8px before deriving
-  // cols/rows from imgWidth/imgHeight, same as it caps width below.
+  // image2 CLI's `--min` (min mode) caps font size to 8px before deriving
+  // cols/rows from imgWidth/imgHeight.
   const safeFontSize = effectiveFontSize(params.fontSize, params.mode === "ascii" && params.dense);
   const { w: charW, h: charH } = charCellSize(safeFontSize);
 
@@ -122,9 +118,6 @@ export async function convertImage(
       const nextHeight = Math.round(params.imgHeight / charH);
       if (Number.isFinite(nextHeight)) imgHeightRows = Math.max(1, nextHeight);
     }
-    // image2 CLI's `--min` (dense mode): only lowers, never raises.
-    if (params.dense) width = Math.min(width, DENSE_WIDTH_CAP);
-
     if (imgHeightRows > 0) {
       ({ cols: width, rows: imgHeightRows } = clampOutputSize(width, imgHeightRows));
     } else {
