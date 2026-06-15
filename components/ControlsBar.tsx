@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { COLORS, FONT_MONO } from "@/lib/theme";
 import type { AnsiPalette, OutputMode } from "@/lib/types";
+import { ASPECT_RATIO_PRESETS, type AspectRatioPreset } from "@/lib/aspect-ratio";
 
 interface ControlsBarProps {
   mode: OutputMode;
@@ -16,6 +17,9 @@ interface ControlsBarProps {
   palette: AnsiPalette;
   imgWidth: number;
   imgHeight: number;
+  lockAspect: boolean;
+  targetAspectRatio: number | null;
+  sourceAspectRatio: number | null;
   bg: string;
   select: boolean;
   invert: boolean;
@@ -37,6 +41,8 @@ interface ControlsBarProps {
   onPaletteChange: (p: AnsiPalette) => void;
   onImgWidthChange: (n: number) => void;
   onImgHeightChange: (n: number) => void;
+  onLockAspectChange: (locked: boolean) => void;
+  onAspectPresetChange: (preset: AspectRatioPreset) => void;
   onBgChange: (s: string) => void;
   onSelectChange: (b: boolean) => void;
   onInvertChange: (b: boolean) => void;
@@ -87,6 +93,19 @@ function segButtonStyle(active: boolean): React.CSSProperties {
     color: active ? COLORS.bg : COLORS.muted,
     border: `1px solid ${active ? COLORS.accent : COLORS.borderStrong}`,
   };
+}
+
+const ASPECT_RATIO_EPSILON = 0.005;
+
+function isActivePreset(
+  preset: AspectRatioPreset,
+  targetAspectRatio: number | null,
+  sourceAspectRatio: number | null,
+): boolean {
+  if (targetAspectRatio === null) return false;
+  const presetRatio = preset.ratio ?? sourceAspectRatio;
+  if (presetRatio === null) return false;
+  return Math.abs(presetRatio - targetAspectRatio) < ASPECT_RATIO_EPSILON;
 }
 
 interface SliderFieldProps {
@@ -267,6 +286,9 @@ export function ControlsBar({
   palette,
   imgWidth,
   imgHeight,
+  lockAspect,
+  targetAspectRatio,
+  sourceAspectRatio,
   bg,
   select,
   invert,
@@ -288,6 +310,8 @@ export function ControlsBar({
   onPaletteChange,
   onImgWidthChange,
   onImgHeightChange,
+  onLockAspectChange,
+  onAspectPresetChange,
   onBgChange,
   onSelectChange,
   onInvertChange,
@@ -435,6 +459,32 @@ export function ControlsBar({
             onChange={onImgWidthChange}
           />
 
+          <div style={{ flex: "0 0 auto", display: "flex", alignItems: "flex-end", paddingBottom: 8 }}>
+            <label
+              htmlFor="lock-aspect-checkbox"
+              style={{
+                ...labelStyle,
+                marginBottom: 0,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                cursor: sourceAspectRatio === null && (imgWidth === 0 || imgHeight === 0) ? "default" : "pointer",
+                opacity: sourceAspectRatio === null && (imgWidth === 0 || imgHeight === 0) ? 0.4 : 1,
+              }}
+              title="Lock width/height to an aspect ratio"
+            >
+              <input
+                id="lock-aspect-checkbox"
+                type="checkbox"
+                checked={lockAspect}
+                disabled={sourceAspectRatio === null && (imgWidth === 0 || imgHeight === 0)}
+                onChange={(e) => onLockAspectChange(e.target.checked)}
+                style={{ accentColor: COLORS.accent }}
+              />
+              🔗 Lock ratio
+            </label>
+          </div>
+
           <SliderField
             id="img-height-slider"
             label={`Image height — ${imgHeight ? `${imgHeight}px` : "auto"}`}
@@ -444,6 +494,31 @@ export function ControlsBar({
             step={20}
             onChange={onImgHeightChange}
           />
+
+          <div style={{ flex: "1 1 100%" }}>
+            <span id="aspect-preset-label" style={labelStyle}>Aspect Ratio Presets</span>
+            <div role="group" aria-labelledby="aspect-preset-label" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {ASPECT_RATIO_PRESETS.map((preset) => {
+                const disabled = preset.ratio === null && sourceAspectRatio === null;
+                const active = isActivePreset(preset, targetAspectRatio, sourceAspectRatio);
+                return (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => onAspectPresetChange(preset)}
+                    disabled={disabled}
+                    style={{
+                      ...segButtonStyle(active),
+                      opacity: disabled ? 0.4 : 1,
+                      cursor: disabled ? "default" : "pointer",
+                    }}
+                  >
+                    {preset.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
           <div style={{ flex: "1 1 160px" }}>
             <label htmlFor="bg-input" style={labelStyle}>Background</label>
