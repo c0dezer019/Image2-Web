@@ -21,6 +21,21 @@ a VPS, etc.). The container listens on port 8000 and needs no extra config or se
 CORS origins are hardcoded in `server/main.py` (`CORSMiddleware`). Add any new frontend
 origin there before deploying.
 
+### Version reporting
+
+`GET /health` includes a `version` field, used to confirm a deploy actually
+shipped (see README's "Build/deploy versions"). On Railway this is populated
+automatically from `RAILWAY_GIT_COMMIT_SHA`. On other hosts without an
+equivalent, set `IMAGE2_SERVER_VERSION` (e.g. to the image tag or commit SHA)
+so `/health` doesn't just report `"dev"`.
+
+### Logging
+
+Conversion requests log their computed `cols`/`rows`/`cells` at INFO, and any
+422 ("Output dimensions exceed server limits") logs the offending values plus
+the active `MAX_OUTPUT_*` limits at WARNING. Set `LOG_LEVEL` (e.g. `DEBUG` or
+`WARNING`) to adjust verbosity — defaults to `INFO`.
+
 ## Wiring up the Next.js app
 
 The browser calls the FastAPI server directly (`lib/convert.ts`) — image

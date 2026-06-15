@@ -5,7 +5,7 @@ import { DropZone } from "@/components/DropZone";
 import { ControlsBar } from "@/components/ControlsBar";
 import { OutputHeader } from "@/components/OutputHeader";
 import { OutputCanvas } from "@/components/OutputCanvas";
-import { Footer } from "@/components/Footer";
+import { VersionFooter } from "@/components/VersionFooter";
 import { BG_HEX, COLORS, FONT_MONO } from "@/lib/theme";
 import { convertImage, effectiveFontSize, getAutoParams } from "@/lib/convert";
 import { getImageDimensions } from "@/lib/image-dimensions";
@@ -295,7 +295,7 @@ export default function Home() {
 
         <OutputCanvas ref={canvasRef} hasOutput={!!result} errorMessage={error} />
 
-        <Footer />
+        <VersionFooter />
       </div>
     </div>
   );
