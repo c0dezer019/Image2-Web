@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DropZone } from "@/components/DropZone";
 import { ControlsBar } from "@/components/ControlsBar";
 import { OutputHeader } from "@/components/OutputHeader";
@@ -60,6 +60,19 @@ export default function Home() {
 
   const sourceAspectRatio = sourceWidth > 0 && sourceHeight > 0 ? sourceWidth / sourceHeight : null;
 
+  // fontSize and dense only affect the server request in ASCII mode when
+  // explicit imgWidth/imgHeight are set (used to derive cols = imgWidth / charW
+  // and rows = imgHeight / charH). In ANSI mode and ASCII auto-size mode they
+  // are render-only — changing them should re-draw the canvas from the cached
+  // result without a network round-trip.
+  const asciiExplicitSize = mode === "ascii" && (imgWidth > 0 || imgHeight > 0);
+  const gridKey = useMemo(() => JSON.stringify({
+    mode, width, contrast, brightness, sharpness, saturate, minLum,
+    palette, invert, blur,
+    ...(asciiExplicitSize ? { fontSize, dense, imgWidth, imgHeight } : {}),
+  }), [mode, width, contrast, brightness, sharpness, saturate, minLum,
+    palette, invert, blur, asciiExplicitSize, fontSize, dense, imgWidth, imgHeight]);
+
   useEffect(() => {
     // Skip while auto-params are being derived for a newly uploaded image —
     // otherwise this fires once with the stale enhancement values and again
@@ -84,7 +97,12 @@ export default function Home() {
         });
     }, 250);
     return () => clearTimeout(timer);
-  }, [file, analyzing, optimizing, mode, width, contrast, brightness, sharpness, saturate, minLum, fontSize, palette, imgWidth, imgHeight, invert, blur, dense]);
+  // gridKey encodes exactly the params that change what the server returns.
+  // fontSize/dense/imgWidth/imgHeight are included in gridKey only when they
+  // actually affect the request (ASCII + explicit image size); otherwise they
+  // are render-only and don't trigger a server call.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [file, analyzing, optimizing, gridKey]);
 
   useEffect(() => {
     if (!result || !canvasRef.current) return;
