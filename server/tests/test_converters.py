@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 from PIL import Image
 
@@ -10,7 +12,7 @@ from imgcommon import resize_for as _resize_for
 
 
 @pytest.fixture
-def sample_image_path(tmp_path):
+def sample_image_path(tmp_path: Path) -> str:
     img = Image.new("RGB", (40, 30))
     for y in range(30):
         for x in range(40):

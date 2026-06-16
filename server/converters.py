@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any, cast
+
 from PIL import Image, ImageFilter, ImageOps
 
 from imgcommon import compute_auto_params, lift_luminance, load_and_enhance, resize_for
@@ -31,7 +33,7 @@ def _preprocess(img: Image.Image, invert: bool, blur: float) -> Image.Image:
     return img
 
 
-def analyze_image(path: str, invert: bool = INVERT_DEFAULT, blur: float = BLUR_DEFAULT) -> dict:
+def analyze_image(path: str, invert: bool = INVERT_DEFAULT, blur: float = BLUR_DEFAULT) -> dict[str, Any]:
     """Derive default contrast/brightness/saturate/min_lum for an image.
 
     Mirrors image2 CLI's auto-detect-by-default behavior
@@ -57,7 +59,7 @@ def convert_to_ascii_grid(
     img_height: int = 0,
     invert: bool = INVERT_DEFAULT,
     blur: float = BLUR_DEFAULT,
-) -> dict:
+) -> dict[str, Any]:
     pil_img = Image.open(path)
     pil_img = _preprocess(pil_img, invert, blur)
     img = load_and_enhance(pil_img, contrast, sharpness, brightness, saturate)
@@ -72,13 +74,13 @@ def convert_to_ascii_grid(
         img = resize_for(img, width, cell_aspect=0.75)
     cols, rows = img.size
 
-    cells: list[list[dict]] = []
+    cells: list[list[dict[str, Any]]] = []
     text_lines: list[str] = []
     for y in range(rows):
-        row: list[dict] = []
+        row: list[dict[str, Any]] = []
         line_chars: list[str] = []
         for x in range(cols):
-            r, g, b = img.getpixel((x, y))
+            r, g, b = cast("tuple[int, int, int]", img.getpixel((x, y)))
             r, g, b = lift_luminance(r, g, b, min_lum)
             lum = int(0.299 * r + 0.587 * g + 0.114 * b)
             ch = ascii_chars[int(lum / 255 * (len(ascii_chars) - 1))]
@@ -101,7 +103,7 @@ def convert_to_ansi_grid(
     min_lum: float = MIN_LUM_DEFAULT,
     invert: bool = INVERT_DEFAULT,
     blur: float = BLUR_DEFAULT,
-) -> dict:
+) -> dict[str, Any]:
     pil_img = Image.open(path)
     pil_img = _preprocess(pil_img, invert, blur)
     img = load_and_enhance(pil_img, contrast, sharpness, brightness, saturate)
@@ -110,20 +112,21 @@ def convert_to_ansi_grid(
     if min_lum > 0:
         img = img.convert("RGB")
         px = img.load()
+        assert px is not None
         for y in range(img.height):
             for x in range(img.width):
-                r, g, b = px[x, y]
+                r, g, b = cast("tuple[int, int, int]", px[x, y])
                 px[x, y] = lift_luminance(r, g, b, min_lum)
     w, h = img.size
     rows = h // 2
 
-    cells: list[list[dict]] = []
+    cells: list[list[dict[str, Any]]] = []
     for cy in range(rows):
         y = cy * 2
-        row: list[dict] = []
+        row: list[dict[str, Any]] = []
         for x in range(w):
-            tr, tg, tb = img.getpixel((x, y))
-            br, bg, bb = img.getpixel((x, y + 1))
+            tr, tg, tb = cast("tuple[int, int, int]", img.getpixel((x, y)))
+            br, bg, bb = cast("tuple[int, int, int]", img.getpixel((x, y + 1)))
             row.append(
                 {
                     "topR": tr, "topG": tg, "topB": tb,
