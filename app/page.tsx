@@ -295,6 +295,20 @@ export default function Home() {
         </nav>
 
         <header style={{ textAlign: "center", paddingBottom: 44 }}>
+          <div style={{ marginBottom: 18 }}>
+            <a
+              href="https://github.com/c0dezer019/image2-web"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: "inline-block", lineHeight: 0 }}
+            >
+              <img
+                src="https://img.shields.io/github/stars/c0dezer019/image2-web?style=flat-square&color=46e3d0&labelColor=0d1117&logo=github&logoColor=46e3d0"
+                alt="GitHub Stars"
+                height="20"
+              />
+            </a>
+          </div>
           <div style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.28em", textTransform: "uppercase", color: COLORS.accent, marginBottom: 18 }}>
             01 / IMAGE &rarr; TEXT ART
           </div>

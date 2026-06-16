@@ -15,12 +15,17 @@ const SERVER_URL = (process.env.NEXT_PUBLIC_IMAGE2_SERVER_URL
 // server is still running the previous, stricter limits.
 export const CLIENT_VERSION = process.env.NEXT_PUBLIC_APP_VERSION || "dev";
 
-/** Fetches the image2 server's version string from /health, for display alongside CLIENT_VERSION. */
-export async function getServerVersion(): Promise<string> {
+/** Fetches the image2 server's version and status from /health. */
+export async function getServerHealth(): Promise<{ version: string; status: string }> {
   const res = await fetch(`${SERVER_URL}/health`);
   if (!res.ok) throw new Error(`Health check failed (${res.status})`);
   const data = await res.json();
-  return data.version ?? "unknown";
+  return { version: data.version ?? "unknown", status: data.status ?? "unknown" };
+}
+
+/** @deprecated Use getServerHealth instead. */
+export async function getServerVersion(): Promise<string> {
+  return (await getServerHealth()).version;
 }
 
 // Mirrors server/main.py's `_validate_output_size` limits. The "Image
