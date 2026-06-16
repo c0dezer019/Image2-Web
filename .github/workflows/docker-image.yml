@@ -83,7 +83,6 @@ jobs:
           fi
         
           docker buildx build \
-            --build-arg GIT_SHA=$(git rev-parse --short HEAD) \
             -t ${{ vars.DOCKER_IMAGE }}:latest \
             -t ${{ vars.DOCKER_IMAGE }}:$(git rev-parse --short HEAD) \
             -f "$DOCKERFILE" \
