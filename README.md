@@ -43,18 +43,12 @@ the server's CORS allowlist — see `server/main.py`).
 
 ### Build/deploy versions
 
-The frontend and server get deployed simaltaneously via git workflow, this
-can be confirmed by the build SHA's located in the footer of the app that
-shows both build versions (`web <sha> · server <sha>`):
+The footer shows the server's semver and online/offline status. Server
+version is read from `server/VERSION` at startup and returned by
+`GET /health` as `{"status": "ok", "version": "..."}`.
 
-- **Frontend**: `NEXT_PUBLIC_APP_VERSION`, set in `next.config.ts` from
-  Vercel's `VERCEL_GIT_COMMIT_SHA` (falls back to `dev` locally).
-- **Server**: `GET /health` returns `{"status": "ok", "version": "..."}`,
-  read from Railway's `RAILWAY_GIT_COMMIT_SHA` (or `IMAGE2_SERVER_VERSION`,
-  falling back to `dev`).
-
-If the two don't match a recent commit, the mismatched side hasn't been
-redeployed yet and should be done manually.
+Bump `server/VERSION` on every PR that changes server behavior (see
+`server/CLAUDE.md` for semver rules).
 
 ## Project Structure
 

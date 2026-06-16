@@ -20,7 +20,7 @@ docker buildx build --attest type=provenance,mode=max,version=v1 --sbom true --p
 
 ## Architecture Decisions
 - Deploys independently from frontend (Railway/Docker). Version mismatch expected.
-- `VERSION` carries independent semver. Bump on server changes; Railway appends git SHA.
+- `VERSION` carries independent semver. Bump on server changes.
 
 ## Versioning (`VERSION` file)
 

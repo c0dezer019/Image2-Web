@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { COLORS, FONT_MONO } from "@/lib/theme";
-import { CLIENT_VERSION, getServerHealth } from "@/lib/convert";
+import { getServerHealth } from "@/lib/convert";
 
 /**
  * Small build-version readout for both halves of the app. The frontend
@@ -47,8 +47,6 @@ export function VersionFooter() {
         gap: 6,
       }}
     >
-      <span>web {CLIENT_VERSION}</span>
-      <span>&middot;</span>
       <span>server {serverVersion ?? "…"}</span>
       {serverStatus !== null && (
         <>

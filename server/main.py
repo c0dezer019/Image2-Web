@@ -22,15 +22,8 @@ logger = logging.getLogger("image2")
 
 # Surfaced via /health to identify which server logic is deployed.
 # VERSION file carries an independent semver bumped on server changes;
-# the git SHA (set by Railway) is appended for traceability.
 _version_file = Path(__file__).parent / "VERSION"
-_semver = _version_file.read_text().strip() if _version_file.exists() else "0.0.0"
-_sha = (
-    os.environ.get("RAILWAY_GIT_COMMIT_SHA")
-    or os.environ.get("IMAGE2_SERVER_VERSION")
-    or ""
-)[:7]
-APP_VERSION = f"{_semver}+{_sha}" if _sha else _semver
+APP_VERSION = _version_file.read_text().strip() if _version_file.exists() else "0.0.0"
 
 app = FastAPI(title="image2 server")
 

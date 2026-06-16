@@ -8,12 +8,6 @@ import type { AnsiResult, AsciiResult, AutoParams, ConvertParams } from "./types
 const SERVER_URL = (process.env.NEXT_PUBLIC_IMAGE2_SERVER_URL
   || process.env.NEXT_DEV_IMAGE2_SERVER_URL) || "http://localhost:8000";
 
-// Short commit SHA for the deployed frontend build, set via next.config.ts
-// from VERCEL_GIT_COMMIT_SHA. Used alongside the server's /health version
-// (see getServerVersion) to spot frontend/backend deploy mismatches — e.g.
-// a frontend already clamping to the new MAX_OUTPUT_* limits while the
-// server is still running the previous, stricter limits.
-export const CLIENT_VERSION = process.env.NEXT_PUBLIC_APP_VERSION || "dev";
 
 /** Fetches the image2 server's version and status from /health. */
 export async function getServerHealth(): Promise<{ version: string; status: string }> {
@@ -160,7 +154,7 @@ export async function convertImage(
   }
 
   console.debug(
-    `[image2] ${CLIENT_VERSION} convert/${params.mode} request: ` +
+    `[image2] convert/${params.mode} request: ` +
       `cols=${width} rows~=${estimatedServerRows} cells~=${width * estimatedServerRows}`,
   );
 
@@ -173,7 +167,7 @@ export async function convertImage(
     const body = await res.json().catch(() => ({}));
     if (res.status === 422) {
       console.error(
-        `[image2] ${CLIENT_VERSION} convert/${params.mode} 422 from server: ` +
+        `[image2] convert/${params.mode} 422 from server: ` +
           `sent cols=${width}, img_height=${imgHeightRows}. ` +
           `Check server /health "version" — client clamps to ${MAX_OUTPUT_COLS}x${MAX_OUTPUT_ROWS} ` +
           `/ ${MAX_OUTPUT_CELLS} cells; an older server build may enforce stricter limits.`,
