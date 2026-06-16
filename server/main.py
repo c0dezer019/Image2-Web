@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import os
 import tempfile
+from typing import Any
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -68,7 +69,7 @@ MAX_OUTPUT_CELLS = 250_000
 
 
 @app.get("/health")
-def health() -> dict:
+def health() -> dict[str, str]:
     return {"status": "ok", "version": APP_VERSION}
 
 
@@ -120,7 +121,7 @@ def analyze(
     file: UploadFile = File(...),
     invert: bool = Form(False),
     blur: float = Form(0.0, ge=0, le=25),
-) -> dict:
+) -> dict[str, Any]:
     path = _save_upload(file)
     try:
         return analyze_image(path, invert=invert, blur=blur)
@@ -144,7 +145,7 @@ def convert_ascii(
     img_height: int = Form(0, ge=0, le=1000),
     invert: bool = Form(False),
     blur: float = Form(0.0, ge=0, le=25),
-) -> dict:
+) -> dict[str, Any]:
     path = _save_upload(file)
     try:
         rows = _estimate_rows(path, width, img_height, cell_aspect=0.75)
@@ -185,7 +186,7 @@ def convert_ansi(
     min_lum: float = Form(0.0),
     invert: bool = Form(False),
     blur: float = Form(0.0, ge=0, le=25),
-) -> dict:
+) -> dict[str, Any]:
     if palette not in VALID_PALETTES:
         raise HTTPException(status_code=422, detail="Invalid palette")
     path = _save_upload(file)
