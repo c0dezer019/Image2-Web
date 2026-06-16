@@ -69,9 +69,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set short SHA
-        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
-
       - name: Build
         run: |
           if [ -n "${{ vars.DOCKER_BUILD_DIR }}" ]; then
@@ -88,7 +85,7 @@ jobs:
           docker buildx build \
             --build-arg GIT_SHA=$(git rev-parse --short HEAD) \
             -t ${{ vars.DOCKER_IMAGE }}:latest \
-            -t ${{ vars.DOCKER_IMAGE }}:${{ env.SHORT_SHA }} \
+            -t ${{ vars.DOCKER_IMAGE }}:$(git rev-parse --short HEAD) \
             -f "$DOCKERFILE" \
             --attest type=provenance,mode=max,version=v1 \
             --sbom=true \
