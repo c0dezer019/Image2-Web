@@ -22,7 +22,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /install /usr/local
-COPY main.py converters.py ./
+COPY main.py converters.py VERSION ./
 
 RUN groupadd --system app && useradd --system --gid app --no-create-home app \
     && chown -R app:app /app
