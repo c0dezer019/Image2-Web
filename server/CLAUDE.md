@@ -22,6 +22,19 @@ docker buildx build --attest type=provenance,mode=max,version=v1 --sbom true --p
 - Deploys independently from frontend (Railway/Docker). Version mismatch expected.
 - `VERSION` carries independent semver. Bump on server changes; Railway appends git SHA.
 
+## Versioning (`VERSION` file)
+
+Bump `VERSION` on every PR that changes server behavior. Use semver:
+
+| Change type | Bump |
+|-------------|------|
+| Breaking API change (removed/renamed endpoint, changed response shape) | major |
+| New endpoint or new optional field added | minor |
+| Bug fix, internal refactor, dependency update, config tweak | patch |
+
+- **Do not bump** for docs-only or CI-only changes.
+- Bump as part of the same commit as the code change — not a follow-up.
+
 ## Runtime Gotchas
 - CORS allowlist in `main.py` — update when adding new frontend origins.
 - `LOG_LEVEL` env var controls logging verbosity (default: `INFO`).
