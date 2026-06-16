@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { compressImageIfNeeded, computeScaledDimensions, nextQuality, withJpegExtension } from "./image-compress";
+import { compressImageIfNeeded, computeScaledDimensions, nextQuality, withJpegExtension } from "../lib/image-compress";
 
 describe("computeScaledDimensions", () => {
   it("leaves dimensions unchanged when within the max", () => {

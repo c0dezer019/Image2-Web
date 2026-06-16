@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { drawSampleScene } from "./sample-image";
+import { drawSampleScene } from "../lib/sample-image";
 
 function makeCtx() {
   return {

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { convertImage } from "./convert";
-import type { ConvertParams } from "./types";
+import { convertImage } from "../lib/convert";
+import type { ConvertParams } from "../lib/types";
 
 const baseParams: ConvertParams = {
   mode: "ascii",

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateImageFile } from "./validate";
+import { validateImageFile } from "../lib/validate";
 
 function makeFile(name: string, type: string, sizeBytes: number): File {
   return new File([new Uint8Array(sizeBytes)], name, { type });

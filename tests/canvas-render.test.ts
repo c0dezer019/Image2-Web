@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { charCellSize, drawAsciiGrid, drawAnsiGrid } from "./canvas-render";
-import type { AnsiResult, AsciiResult } from "./types";
+import { charCellSize, drawAsciiGrid, drawAnsiGrid } from "../lib/canvas-render";
+import type { AnsiResult, AsciiResult } from "../lib/types";
 
 function makeCtx() {
   return {

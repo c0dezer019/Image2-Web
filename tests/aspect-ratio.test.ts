@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ASPECT_RATIO_PRESETS, heightForWidth, widthForHeight } from "./aspect-ratio";
+import { ASPECT_RATIO_PRESETS, heightForWidth, widthForHeight } from "../lib/aspect-ratio";
 
 describe("heightForWidth", () => {
   it("computes height from width and ratio", () => {
