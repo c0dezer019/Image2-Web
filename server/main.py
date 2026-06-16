@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import os
 import tempfile
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
@@ -19,14 +20,17 @@ from converters import analyze_image, convert_to_ansi_grid, convert_to_ascii_gri
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO").upper())
 logger = logging.getLogger("image2")
 
-# Surfaced via /health so a deployed frontend/backend pair can be confirmed to
-# be running the code they're expected to (Railway sets this automatically;
-# falls back to a manually-set env var, then "dev" for local runs).
-APP_VERSION = (
+# Surfaced via /health to identify which server logic is deployed.
+# VERSION file carries an independent semver bumped on server changes;
+# the git SHA (set by Railway) is appended for traceability.
+_version_file = Path(__file__).parent / "VERSION"
+_semver = _version_file.read_text().strip() if _version_file.exists() else "0.0.0"
+_sha = (
     os.environ.get("RAILWAY_GIT_COMMIT_SHA")
     or os.environ.get("IMAGE2_SERVER_VERSION")
-    or "dev"
+    or ""
 )[:7]
+APP_VERSION = f"{_semver}+{_sha}" if _sha else _semver
 
 app = FastAPI(title="image2 server")
 
