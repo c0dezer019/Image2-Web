@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { COLORS, FONT_MONO } from "@/lib/theme";
-import { CLIENT_VERSION, getServerVersion } from "@/lib/convert";
+import { CLIENT_VERSION, getServerHealth } from "@/lib/convert";
 
 /**
  * Small build-version readout for both halves of the app. The frontend
@@ -13,12 +13,22 @@ import { CLIENT_VERSION, getServerVersion } from "@/lib/convert";
  */
 export function VersionFooter() {
   const [serverVersion, setServerVersion] = useState<string | null>(null);
+  const [serverStatus, setServerStatus] = useState<"ok" | "offline" | null>(null);
 
   useEffect(() => {
-    getServerVersion()
-      .then(setServerVersion)
-      .catch(() => setServerVersion("unreachable"));
+    getServerHealth()
+      .then(({ version, status }) => {
+        setServerVersion(version);
+        setServerStatus(status === "ok" ? "ok" : "offline");
+      })
+      .catch(() => {
+        setServerVersion("unreachable");
+        setServerStatus("offline");
+      });
   }, []);
+
+  const statusDotColor =
+    serverStatus === "ok" ? "#4ade80" : serverStatus === "offline" ? "#f87171" : COLORS.muted;
 
   return (
     <div
@@ -31,9 +41,32 @@ export function VersionFooter() {
         textTransform: "uppercase",
         color: COLORS.muted,
         opacity: 0.6,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
       }}
     >
-      web {CLIENT_VERSION} &middot; server {serverVersion ?? "…"}
+      <span>web {CLIENT_VERSION}</span>
+      <span>&middot;</span>
+      <span>server {serverVersion ?? "…"}</span>
+      {serverStatus !== null && (
+        <>
+          <span
+            style={{
+              display: "inline-block",
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              background: statusDotColor,
+              flexShrink: 0,
+            }}
+          />
+          <span style={{ color: statusDotColor }}>
+            {serverStatus === "ok" ? "online" : "offline"}
+          </span>
+        </>
+      )}
     </div>
   );
 }
