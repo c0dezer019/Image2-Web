@@ -25,14 +25,14 @@ sha256 = "1f02e8b43a8fbbc3f3e0d4f0f4bfc8131bcb4eebe8849b8e5c773f3a1c582a53"
 
 [[packages]]
 name = "anyio"
-version = "4.13.0"
+version = "4.14.0"
 
 [[packages.wheels]]
-name = "anyio-4.13.0-py3-none-any.whl"
-url = "https://files.pythonhosted.org/packages/da/42/e921fccf5015463e32a3cf6ee7f980a6ed0f395ceeaa45060b61d86486c2/anyio-4.13.0-py3-none-any.whl"
+name = "anyio-4.14.0-py3-none-any.whl"
+url = "https://files.pythonhosted.org/packages/ba/16/9826f089383c593cdfc4a6e5aca94d9e91ae1692c57af82c3b2aa5e810f7/anyio-4.14.0-py3-none-any.whl"
 
 [packages.wheels.hashes]
-sha256 = "08b310f9e24a9594186fd75b4f73f4a4152069e3853f1ed8bfbf58369f4ad708"
+sha256 = "dd9b7a2a9799ed6552fde617b2c5df02b7fdd7d88392fc48101e51bae46164d9"
 
 [[packages]]
 name = "cairocffi"
@@ -101,15 +101,26 @@ url = "https://files.pythonhosted.org/packages/07/6c/aa3f2f849e01cb6a001cd8554a8
 sha256 = "a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61"
 
 [[packages]]
-name = "fastapi"
-version = "0.136.3"
+name = "deprecated"
+version = "1.3.1"
 
 [[packages.wheels]]
-name = "fastapi-0.136.3-py3-none-any.whl"
-url = "https://files.pythonhosted.org/packages/e0/82/45359b62a067409bd929ae8a56b8ed13e5a8c8a61194b3c236920999ab83/fastapi-0.136.3-py3-none-any.whl"
+name = "deprecated-1.3.1-py2.py3-none-any.whl"
+url = "https://files.pythonhosted.org/packages/84/d0/205d54408c08b13550c733c4b85429e7ead111c7f0014309637425520a9a/deprecated-1.3.1-py2.py3-none-any.whl"
 
 [packages.wheels.hashes]
-sha256 = "3d2a69bdf04b7e9f3afa292c3bc7a98816bbfafa10bc9b45f3f3700d2f761620"
+sha256 = "597bfef186b6f60181535a29fbe44865ce137a5079f295b479886c82729d5f3f"
+
+[[packages]]
+name = "fastapi"
+version = "0.137.1"
+
+[[packages.wheels]]
+name = "fastapi-0.137.1-py3-none-any.whl"
+url = "https://files.pythonhosted.org/packages/da/35/380b9a5922f4340e51c309cde09e5bd32e62f02302971bee30dc15aa0624/fastapi-0.137.1-py3-none-any.whl"
+
+[packages.wheels.hashes]
+sha256 = "64f6983c59e45c4b9fdc44e57cb8035c2451ee91ea8e8ec042aca37de7cf6b69"
 
 [[packages]]
 name = "h11"
@@ -123,6 +134,17 @@ url = "https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995
 sha256 = "63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86"
 
 [[packages]]
+name = "httpcore2"
+version = "2.4.0"
+
+[[packages.wheels]]
+name = "httpcore2-2.4.0-py3-none-any.whl"
+url = "https://files.pythonhosted.org/packages/7c/72/4fdf2306143a92a471fad9f3655aa542d43aa9188a7c9534e82c9aecf837/httpcore2-2.4.0-py3-none-any.whl"
+
+[packages.wheels.hashes]
+sha256 = "5218779da5d6e3c2013ac706121abfb3815d450e0613495c0de50264dce58242"
+
+[[packages]]
 name = "httptools"
 version = "0.8.0"
 
@@ -132,6 +154,17 @@ url = "https://files.pythonhosted.org/packages/ba/53/771bd891eb0f236f32145d6a177
 
 [packages.wheels.hashes]
 sha256 = "c4a9f1707e4823d54dfec6c33fa3697d302aed536ed352a7ebb5a061ddb869d0"
+
+[[packages]]
+name = "httpx2"
+version = "2.4.0"
+
+[[packages.wheels]]
+name = "httpx2-2.4.0-py3-none-any.whl"
+url = "https://files.pythonhosted.org/packages/29/45/82bc57c3d9c3314f663b67cc057f1c017a6450685dde513f4f8db5cf431f/httpx2-2.4.0-py3-none-any.whl"
+
+[packages.wheels.hashes]
+sha256 = "425acd99297829599decf6701386dd84db3542597d36d3e2e4def930ecd57fd9"
 
 [[packages]]
 name = "idna"
@@ -150,8 +183,30 @@ name = "image2"
 [packages.vcs]
 type = "git"
 url = "https://github.com/c0dezer019/image2.git"
-requested-revision = "v1.1.0"
-commit-id = "96b26ae9435b55ac97a33fae204ef01dc3c36135"
+requested-revision = "v1.2.2"
+commit-id = "34629767ead46182780805eb3dd2fff94cb6fa06"
+
+[[packages]]
+name = "limits"
+version = "5.8.0"
+
+[[packages.wheels]]
+name = "limits-5.8.0-py3-none-any.whl"
+url = "https://files.pythonhosted.org/packages/b9/98/cb5ca20618d205a09d5bec7591fbc4130369c7e6308d9a676a28ff3ab22c/limits-5.8.0-py3-none-any.whl"
+
+[packages.wheels.hashes]
+sha256 = "ae1b008a43eb43073c3c579398bd4eb4c795de60952532dc24720ab45e1ac6b8"
+
+[[packages]]
+name = "packaging"
+version = "26.2"
+
+[[packages.wheels]]
+name = "packaging-26.2-py3-none-any.whl"
+url = "https://files.pythonhosted.org/packages/df/b2/87e62e8c3e2f4b32e5fe99e0b86d576da1312593b39f47d8ceef365e95ed/packaging-26.2-py3-none-any.whl"
+
+[packages.wheels.hashes]
+sha256 = "5fc45236b9446107ff2415ce77c807cee2862cb6fac22b8a73826d0693b0980e"
 
 [[packages]]
 name = "pillow"
@@ -231,15 +286,26 @@ url = "https://files.pythonhosted.org/packages/88/f9/16491d7ed2a919954993e48aa94
 sha256 = "c458b6d084f9b935061bc36216e8a69a7e293a2f1e68bf956dcd9e6cbcd143f5"
 
 [[packages]]
-name = "starlette"
-version = "1.3.0"
+name = "slowapi"
+version = "0.1.10"
 
 [[packages.wheels]]
-name = "starlette-1.3.0-py3-none-any.whl"
-url = "https://files.pythonhosted.org/packages/16/42/56d31c5ee52dab0ad893d67d4f9c00f5ba2b4c5d87f392eca2c3fdce01cf/starlette-1.3.0-py3-none-any.whl"
+name = "slowapi-0.1.10-py3-none-any.whl"
+url = "https://files.pythonhosted.org/packages/c4/8b/1d359f38706b4097d9a943bf8bd22599f537de4cbaff1e622d3e3936e164/slowapi-0.1.10-py3-none-any.whl"
 
 [packages.wheels.hashes]
-sha256 = "ff4ca1bc23de6a45cdfbbeb9b3caaea524c9221cdd8a6684ad7a4f651a83890b"
+sha256 = "3acb61561dc9d687e3d3669362ff6a439de9ba44e2fed3a9c165da26b4b83e28"
+
+[[packages]]
+name = "starlette"
+version = "1.3.1"
+
+[[packages.wheels]]
+name = "starlette-1.3.1-py3-none-any.whl"
+url = "https://files.pythonhosted.org/packages/ec/bb/2799cc2ede3ed41131f8975621e7213dfc7ef4acbbaadfa440f32500c370/starlette-1.3.1-py3-none-any.whl"
+
+[packages.wheels.hashes]
+sha256 = "c7372aae11c3c3f26a42df7bd626cec2f47d03483d261d369516a615a53714c6"
 
 [[packages]]
 name = "tinycss2"
@@ -251,6 +317,17 @@ url = "https://files.pythonhosted.org/packages/60/45/c7b5c3168458db837e8ceab06dc
 
 [packages.wheels.hashes]
 sha256 = "3415ba0f5839c062696996998176c4a3751d18b7edaaeeb658c9ce21ec150661"
+
+[[packages]]
+name = "truststore"
+version = "0.10.4"
+
+[[packages.wheels]]
+name = "truststore-0.10.4-py3-none-any.whl"
+url = "https://files.pythonhosted.org/packages/19/97/56608b2249fe206a67cd573bc93cd9896e1efb9e98bce9c163bcdc704b88/truststore-0.10.4-py3-none-any.whl"
+
+[packages.wheels.hashes]
+sha256 = "adaeaecf1cbb5f4de3b1959b42d41f6fab57b2b1666adb59e89cb0b53361d981"
 
 [[packages]]
 name = "typing-extensions"
@@ -328,3 +405,14 @@ url = "https://files.pythonhosted.org/packages/63/bc/d3e208028de777087e6fb2b1220
 
 [packages.wheels.hashes]
 sha256 = "781caf5e8eee67f663126490c2f96f40906594cb86b408a703630f95550a8c3e"
+
+[[packages]]
+name = "wrapt"
+version = "2.2.1"
+
+[[packages.wheels]]
+name = "wrapt-2.2.1-cp314-cp314-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl"
+url = "https://files.pythonhosted.org/packages/15/a3/7c8f704b8dc07dfe0a5d01c2edbfd88317aa8e5e3fa7c743eb7a085ae767/wrapt-2.2.1-cp314-cp314-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl"
+
+[packages.wheels.hashes]
+sha256 = "b9cf53ba90717db2e292401de290776c498d4bbfb0d4a559ca2895db8b9dcb5c"
