@@ -12,11 +12,6 @@ pnpm test         # vitest (frontend tests in tests/)
 pnpm lint         # eslint
 ```
 
-Server (required for image conversions):
-```bash
-cd server && docker buildx build --attest type=provenance,mode=max,version=v1 --sbom true --push -t image2-server . && docker run -p 8000:8000 image2-server
-cd server && pytest tests/
-```
 
 ## Architecture
 
@@ -41,6 +36,7 @@ tests/       Vitest frontend tests
 
 ## Gotchas
 
-- Frontend (Vercel) and server (Railway) deploy independently — version mismatch shown in footer
-- Server CORS allowlist lives in `server/main.py` — update when adding new frontend origins
+- Tailwind CSS v4 — no `tailwind.config.*` file; CSS-first config via `globals.css`. Different from v3.
+- Frontend (Vercel) + server (Railway) deploy independently — version mismatch shown in footer
+- Server CORS allowlist in `server/main.py` — update when adding new frontend origins
 - Next.js 16 / React 19 — see AGENTS.md warning about breaking changes
