@@ -1,7 +1,9 @@
 @AGENTS.md
 
-## Working Style
+## Rules
 - Scope to task. No adjacent refactors unless asked.
+- For breaking changes, adding features, or really anything that changes app functionality, create a new branch before making changes.
+- Don't push direct to main unless instructed. Exception to this rule if it is just documentation or gh workflow updates.
 
 ## Commands
 
