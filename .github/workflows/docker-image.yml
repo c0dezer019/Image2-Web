@@ -1,14 +1,11 @@
 name: Docker Image CI
 
 on:
-  pull_request:
-    branches: [ "main" ]
-    paths:
-      - 'server/**'
-  push:
-    branches: [ "main" ]
-    paths:
-      - 'server/**'
+  workflow_run:
+    types: completed
+    branches: main
+    workflows:
+      - "CodeQL Advanced"
 
 permissions:
   contents: read
@@ -18,41 +15,25 @@ jobs:
   gate:
     name: Wait for All Required Workflows
     runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
     outputs:
       should_deploy: ${{ steps.check.outputs.should_deploy }}
     steps:
-      - name: Check all required workflows succeeded
+      - name: Check path filter
         id: check
         uses: actions/github-script@v7
         with:
           script: |
             const sha = context.payload.workflow_run.head_sha;
-            const required = ['CodeQL Advanced'];
-
-            const { data } = await github.rest.actions.listWorkflowRunsForRepo({
+            // Check if the triggering commit touched server/**
+            const { data } = await github.rest.repos.getCommit({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              head_sha: sha,
-              per_page: 100,
+              ref: sha,
             });
+            const touchedServer = data.files.some(f => f.filename.startsWith('server/'));
+            core.setOutput('should_deploy', String(touchedServer));
 
-            let allPassed = true;
-            for (const name of required) {
-              const run = data.workflow_runs.find(
-                r => r.name === name && r.status === 'completed'
-              );
-              if (!run) {
-                console.log(`'${name}' has not completed yet for ${sha}`);
-                allPassed = false;
-              } else if (run.conclusion !== 'success') {
-                console.log(`'${name}' concluded with '${run.conclusion}' for ${sha}`);
-                allPassed = false;
-              } else {
-                console.log(`'${name}' succeeded for ${sha}`);
-              }
-            }
-
-            core.setOutput('should_deploy', String(allPassed));
   build-and-push:
     name: Build and Push
     runs-on: ubuntu-latest
