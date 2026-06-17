@@ -78,9 +78,11 @@ jobs:
 
   deploy-dev:
     name: Deploy To Railway
-    if: github.event_name == 'push' && github.ref != 'refs/heads/main'
+    needs: [gate, test]
+    if: |
+      needs.gate.outputs.should_deploy == 'true' &&
+      github.event.workflow_run.head_branch != 'main'
     runs-on: ubuntu-latest
-    needs: test
     environment: Development
     steps:
       - name: Checkout
@@ -96,9 +98,11 @@ jobs:
 
   deploy-prod:
     name: Deploy to Fly.io
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [gate, test]
+    if: |
+      needs.gate.outputs.should_deploy == 'true' &&
+      github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
-    needs: test
     environment: Production
     steps:
       - name: Checkout
