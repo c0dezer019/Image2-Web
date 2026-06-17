@@ -10,6 +10,7 @@ from typing import Any
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
+from starlette.background import BackgroundTask
 from PIL import Image, UnidentifiedImageError
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
@@ -83,16 +84,28 @@ def health() -> dict[str, Any]:
 def upload(file: UploadFile = File(...)) -> dict[str, Any]:
     session_id = str(uuid.uuid4())
     path = _save_upload(file)
+    try:
+        with Image.open(path) as img:
+            img.verify()
+    except UnidentifiedImageError:
+        os.remove(path)
+        raise HTTPException(
+            status_code=422, detail="Could not read image file"
+        )
     _upload_store[session_id] = path
     return {"session_id": session_id, "expires_in": 3600}
 
 
 @app.get("/session/{session_id}")
 def get_session(session_id: str) -> FileResponse:
-    path = _upload_store.get(session_id)
+    path = _upload_store.pop(session_id, None)
     if not path or not os.path.exists(path):
         raise HTTPException(status_code=404, detail="Session not found")
-    return FileResponse(path)
+    return FileResponse(
+        path,
+        media_type="application/octet-stream",
+        background=BackgroundTask(os.remove, path),
+    )
 
 
 def _save_upload(file: UploadFile) -> str:
