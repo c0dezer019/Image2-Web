@@ -1,5 +1,8 @@
 import io
+import os
+from unittest.mock import patch
 
+import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
 
@@ -138,3 +141,65 @@ def test_convert_ansi_rejects_oversized_output():
     )
     assert res.status_code == 422
     assert res.json() == {"detail": "Output dimensions exceed server limits"}
+
+
+# ---------------------------------------------------------------------------
+# LOCAL_MODE, /upload, /session tests
+# ---------------------------------------------------------------------------
+
+
+def test_health_returns_local_false_by_default():
+    res = client.get("/health")
+    assert res.status_code == 200
+    assert res.json()["local"] is False
+
+
+def test_health_returns_local_true_when_env_set():
+    import main
+    with patch.object(main, "LOCAL_MODE", True):
+        local_client = TestClient(main.app)
+        res = local_client.get("/health")
+        assert res.status_code == 200
+        assert res.json()["local"] is True
+
+
+def test_upload_returns_session_id():
+    res = client.post(
+        "/upload",
+        files={"file": ("test.png", _sample_png_bytes(), "image/png")},
+    )
+    assert res.status_code == 200
+    body = res.json()
+    assert "session_id" in body
+    assert body["expires_in"] == 3600
+
+
+def test_session_returns_uploaded_file():
+    png = _sample_png_bytes()
+    upload_res = client.post(
+        "/upload",
+        files={"file": ("test.png", png, "image/png")},
+    )
+    session_id = upload_res.json()["session_id"]
+    get_res = client.get(f"/session/{session_id}")
+    assert get_res.status_code == 200
+    assert get_res.content == png
+
+
+def test_session_404_for_unknown_id():
+    res = client.get("/session/does-not-exist")
+    assert res.status_code == 404
+
+
+def test_validate_output_size_skipped_when_local():
+    import main
+    with patch.object(main, "LOCAL_MODE", True):
+        # Should not raise even with cols/rows exceeding normal limits
+        main._validate_output_size(9999, 9999, mode="ascii")
+
+
+def test_validate_output_size_enforced_when_not_local():
+    import main
+    with patch.object(main, "LOCAL_MODE", False):
+        with pytest.raises(Exception):
+            main._validate_output_size(9999, 9999, mode="ascii")
