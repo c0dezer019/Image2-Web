@@ -56,13 +56,12 @@ export function SessionLoader({
 
     fetchSession(sessionId)
       .then((blob) => {
-        onFile(new File([blob], "upload", { type: blob.type || "image/png" }));
+        onFile(new File([blob], `session-${sessionId}`, { type: "image/png" }));
       })
       .catch(() => {
         // Session expired or server not running — silently ignore
       });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchParams]);
 
   return null;
 }
