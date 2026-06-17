@@ -33,7 +33,7 @@ export function detectPlatform(ua: string): PlatformInfo | null {
       url: `${BASE}/${LINUX_TAG}/img2_${LINUX_VERSION}_amd64.deb`,
     };
   }
-  if (ua.includes("Mac")) {
+  if (ua.includes("Macintosh")) {
     return {
       label: "macOS (Apple Silicon)",
       url: `${BASE}/${MAC_TAG}/img2-macos-arm64`,

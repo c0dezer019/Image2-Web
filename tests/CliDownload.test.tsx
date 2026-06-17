@@ -33,4 +33,18 @@ describe("detectPlatform", () => {
   it("returns null for unrecognized UA", () => {
     expect(detectPlatform("curl/7.81.0")).toBeNull();
   });
+
+  it("returns null for iPad UA (not a macOS binary target)", () => {
+    const r = detectPlatform(
+      "Mozilla/5.0 (iPad; CPU OS 16_0 like Mac OS X) AppleWebKit/605.1.15"
+    );
+    expect(r).toBeNull();
+  });
+
+  it("returns null for iPhone UA (not a macOS binary target)", () => {
+    const r = detectPlatform(
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15"
+    );
+    expect(r).toBeNull();
+  });
 });
