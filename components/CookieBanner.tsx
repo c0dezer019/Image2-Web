@@ -12,15 +12,17 @@ export function CookieBanner() {
     setConsentState(getConsent());
   }, []);
 
-  if (consent !== null) return null;
-
   function handle(state: "accepted" | "rejected") {
     setConsent(state);
     setConsentState(state);
   }
 
+  if (consent !== null) return null;
+
   return (
     <div
+      role="dialog"
+      aria-label="Cookie consent"
       style={{
         position: "fixed",
         bottom: 24,
@@ -34,13 +36,14 @@ export function CookieBanner() {
         letterSpacing: "0.18em",
         textTransform: "uppercase",
         zIndex: 9999,
+        boxSizing: "border-box" as const,
       }}
     >
       <div style={{ color: COLORS.text, marginBottom: 12 }}>Cookies</div>
       <p
         style={{
           color: COLORS.muted,
-          fontSize: 11,
+          fontSize: 12,
           letterSpacing: "0.08em",
           textTransform: "none",
           lineHeight: 1.5,
@@ -55,6 +58,7 @@ export function CookieBanner() {
       </p>
       <div style={{ display: "flex", gap: 8 }}>
         <button
+          type="button"
           onClick={() => handle("rejected")}
           style={{
             flex: 1,
@@ -72,6 +76,7 @@ export function CookieBanner() {
           Reject
         </button>
         <button
+          type="button"
           onClick={() => handle("accepted")}
           style={{
             flex: 1,

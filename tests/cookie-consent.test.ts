@@ -24,4 +24,9 @@ describe("getConsent", () => {
     setConsent("accepted");
     expect(localStorage.getItem(CONSENT_KEY)).toBe("accepted");
   });
+
+  it("returns null for unrecognized stored value", () => {
+    localStorage.setItem(CONSENT_KEY, "yes");
+    expect(getConsent()).toBeNull();
+  });
 });
