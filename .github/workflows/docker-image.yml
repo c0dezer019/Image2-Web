@@ -35,7 +35,10 @@ jobs:
 
   build-and-push-dev: # oOnly difference is this dbuilds a dev-tagged container.
     name: Build and Push Dev
-    if: github.event_name == 'push' && github.ref != 'refs/heads/main'
+    needs: gate
+    if: |
+      needs.gate.outputs.should_deploy == 'true' &&
+      github.event.workflow_run.head_branch != 'main'
     runs-on: ubuntu-latest
 
     steps:
@@ -68,7 +71,10 @@ jobs:
 
   build-and-push-prod:
     name: Build and Push
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: gate
+    if: |
+      needs.gate.outputs.should_deploy == 'true' &&
+      github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
 
     steps:
