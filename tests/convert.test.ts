@@ -113,6 +113,44 @@ describe("convertImage output-size clamping", () => {
     expect(estimatedRows).toBeLessThanOrEqual(600);
     expect(width * estimatedRows).toBeLessThanOrEqual(250_000);
   });
+
+  it("does NOT clamp when server is in local mode", async () => {
+    // First prime isLocalMode by calling getServerHealth with local:true
+    vi.stubGlobal("fetch", vi.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ status: "ok", version: "1.0.0", local: true }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ cols: 1, rows: 1, cells: [[]], text: "" }),
+      })
+    );
+    await getServerHealth();
+
+    await convertImage(new Blob(), {
+      ...baseParams,
+      imgWidth: 4000,
+      imgHeight: 4000,
+      fontSize: 2,
+    });
+
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    // Second call is convertImage; get its FormData
+    const form = fetchMock.mock.calls[1][1].body as FormData;
+    const width = Number(form.get("width"));
+    const imgHeight = Number(form.get("img_height"));
+
+    // With local mode, should NOT be clamped to 600
+    expect(width).toBeGreaterThan(600);
+
+    // Reset local mode so other tests are not affected
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ status: "ok", version: "1.0.0", local: false }),
+    }));
+    await getServerHealth();
+  });
 });
 
 describe("getServerHealth local mode", () => {

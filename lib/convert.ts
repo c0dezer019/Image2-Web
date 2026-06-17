@@ -135,10 +135,12 @@ export async function convertImage(
       const nextHeight = Math.round(params.imgHeight / charH);
       if (Number.isFinite(nextHeight)) imgHeightRows = Math.max(1, nextHeight);
     }
-    if (imgHeightRows > 0) {
-      ({ cols: width, rows: imgHeightRows } = clampOutputSize(width, imgHeightRows));
-    } else {
-      width = Math.min(width, MAX_OUTPUT_COLS);
+    if (!_isLocal) {
+      if (imgHeightRows > 0) {
+        ({ cols: width, rows: imgHeightRows } = clampOutputSize(width, imgHeightRows));
+      } else {
+        width = Math.min(width, MAX_OUTPUT_COLS);
+      }
     }
     estimatedServerRows = imgHeightRows;
   } else {
@@ -149,9 +151,13 @@ export async function convertImage(
     if (params.imgWidth > 0 && params.imgHeight > 0) {
       const aspect = params.imgHeight / params.imgWidth;
       const estimatedRows = Math.max(1, Math.round((width * aspect) / 2));
-      ({ cols: width, rows: estimatedServerRows } = clampOutputSize(width, estimatedRows));
+      if (!_isLocal) {
+        ({ cols: width, rows: estimatedServerRows } = clampOutputSize(width, estimatedRows));
+      } else {
+        estimatedServerRows = estimatedRows;
+      }
     } else {
-      width = Math.min(width, MAX_OUTPUT_COLS);
+      if (!_isLocal) width = Math.min(width, MAX_OUTPUT_COLS);
     }
   }
 
