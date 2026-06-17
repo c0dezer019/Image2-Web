@@ -85,9 +85,9 @@ def upload(file: UploadFile = File(...)) -> dict[str, Any]:
     session_id = str(uuid.uuid4())
     path = _save_upload(file)
     try:
-        with Image.open(path) as img:
-            img.verify()
-    except UnidentifiedImageError:
+        img = Image.open(path)
+        img.verify()
+    except Exception:
         os.remove(path)
         raise HTTPException(
             status_code=422, detail="Could not read image file"
