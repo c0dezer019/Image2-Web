@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { SessionLoader } from "@/components/SessionLoader";
 import { DropZone } from "@/components/DropZone";
 import { ControlsBar } from "@/components/ControlsBar";
 import { OutputHeader } from "@/components/OutputHeader";
@@ -266,6 +267,19 @@ export default function Home() {
 
   return (
     <div style={{ minHeight: "100vh", background: COLORS.bg, color: COLORS.text, position: "relative", overflow: "hidden" }}>
+      <Suspense>
+        <SessionLoader
+          onFile={handleFile}
+          onMode={setMode}
+          onContrast={setContrast}
+          onBrightness={setBrightness}
+          onSharpness={setSharpness}
+          onSaturate={setSaturate}
+          onMinLum={setMinLum}
+          onWidth={(n) => { if (!Number.isFinite(n)) return; setWidth(Math.max(1, Math.round(n))); }}
+          onPalette={setPalette}
+        />
+      </Suspense>
       <div
         style={{
           position: "fixed",
