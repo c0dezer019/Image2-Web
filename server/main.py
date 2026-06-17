@@ -39,7 +39,9 @@ app.state.limiter = limiter
 def _rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
     return JSONResponse(
         status_code=429,
-        content={"detail": "Too many requests. Please slow down and try again shortly."},
+        content={
+            "detail": "Too many requests. Please slow down and try again shortly."
+        },
     )
 
 
@@ -55,6 +57,7 @@ app.add_middleware(
         "https://image2-web.theappfoundry.tech",
         "http://localhost:3000",
     ],
+    allow_origin_regex=r"https://image2-[a-z0-9]+-the-app-foundry\.vercel\.app",
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -90,7 +93,9 @@ def _validate_output_size(cols: int, rows: int, *, mode: str) -> None:
     if cols < 1 or rows < 1:
         logger.warning(
             "Rejecting %s conversion: non-positive output size (cols=%d, rows=%d)",
-            mode, cols, rows,
+            mode,
+            cols,
+            rows,
         )
         raise HTTPException(
             status_code=422, detail="Output dimensions exceed server limits"
@@ -103,8 +108,13 @@ def _validate_output_size(cols: int, rows: int, *, mode: str) -> None:
         logger.warning(
             "Rejecting %s conversion: cols=%d rows=%d cells=%d exceed limits "
             "(max_cols=%d, max_rows=%d, max_cells=%d)",
-            mode, cols, rows, cols * rows,
-            MAX_OUTPUT_COLS, MAX_OUTPUT_ROWS, MAX_OUTPUT_CELLS,
+            mode,
+            cols,
+            rows,
+            cols * rows,
+            MAX_OUTPUT_COLS,
+            MAX_OUTPUT_ROWS,
+            MAX_OUTPUT_CELLS,
         )
         raise HTTPException(
             status_code=422, detail="Output dimensions exceed server limits"
@@ -148,7 +158,11 @@ def convert_ascii(
         rows = _estimate_rows(path, width, img_height, cell_aspect=0.75)
         logger.info(
             "convert/ascii request: width=%d img_height=%d -> cols=%d rows=%d cells=%d",
-            width, img_height, width, rows, width * rows,
+            width,
+            img_height,
+            width,
+            rows,
+            width * rows,
         )
         _validate_output_size(width, rows, mode="ascii")
         return convert_to_ascii_grid(
@@ -191,7 +205,10 @@ def convert_ansi(
         rows = _estimate_rows(path, width, 0, cell_aspect=1.0) // 2
         logger.info(
             "convert/ansi request: width=%d -> cols=%d rows=%d cells=%d",
-            width, width, rows, width * rows,
+            width,
+            width,
+            rows,
+            width * rows,
         )
         _validate_output_size(width, rows, mode="ansi")
         return convert_to_ansi_grid(
