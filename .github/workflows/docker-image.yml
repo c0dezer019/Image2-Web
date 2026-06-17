@@ -105,3 +105,85 @@ jobs:
             --sbom=true \
             --push \
             ${{ vars.DOCKER_BUILD_DIR || '.' }}
+
+  gate-web:
+    name: Continue Only if Changes Are On Frontend
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+    outputs:
+      should_deploy: ${{ steps.check.outputs.should_deploy }}
+    steps:
+      - name: Check path filter
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const sha = context.payload.workflow_run.head_sha;
+            const { data } = await github.rest.repos.getCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: sha,
+            });
+            const touchedFrontend = data.files.some(
+              f => !f.filename.startsWith('server/')
+            );
+            core.setOutput('should_deploy', String(touchedFrontend));
+
+  build-and-push-web-dev:
+    name: Build and Push Web Dev
+    needs: gate-web
+    if: |
+      needs.gate-web.outputs.should_deploy == 'true' &&
+      github.event.workflow_run.head_branch != 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        run: |
+          docker buildx build \
+            -t ${{ vars.DOCKER_WEB_IMAGE }}:dev \
+            -f Dockerfile \
+            --attest type=provenance,mode=max,version=v1 \
+            --sbom=true \
+            --push \
+            .
+
+  build-and-push-web-prod:
+    name: Build and Push Web
+    needs: gate-web
+    if: |
+      needs.gate-web.outputs.should_deploy == 'true' &&
+      github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        run: |
+          docker buildx build \
+            -t ${{ vars.DOCKER_WEB_IMAGE }}:latest \
+            -t ${{ vars.DOCKER_WEB_IMAGE }}:$(git rev-parse --short HEAD) \
+            -f Dockerfile \
+            --attest type=provenance,mode=max,version=v1 \
+            --sbom=true \
+            --push \
+            .
