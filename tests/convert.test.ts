@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { convertImage } from "../lib/convert";
+import { convertImage, getServerHealth, isLocalMode, fetchSession } from "../lib/convert";
 import type { ConvertParams } from "../lib/types";
 
 const baseParams: ConvertParams = {
@@ -112,5 +112,54 @@ describe("convertImage output-size clamping", () => {
     expect(width).toBeLessThanOrEqual(600);
     expect(estimatedRows).toBeLessThanOrEqual(600);
     expect(width * estimatedRows).toBeLessThanOrEqual(250_000);
+  });
+});
+
+describe("getServerHealth local mode", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("returns local: true and sets isLocalMode when server reports local", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ status: "ok", version: "1.0.0", local: true }),
+    }));
+    const result = await getServerHealth();
+    expect(result.local).toBe(true);
+    expect(isLocalMode()).toBe(true);
+  });
+
+  it("returns local: false and clears isLocalMode when server is cloud", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ status: "ok", version: "1.0.0", local: false }),
+    }));
+    const result = await getServerHealth();
+    expect(result.local).toBe(false);
+    expect(isLocalMode()).toBe(false);
+  });
+
+  it("defaults local to false when server omits the field", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ status: "ok", version: "1.0.0" }),
+    }));
+    const result = await getServerHealth();
+    expect(result.local).toBe(false);
+  });
+});
+
+describe("fetchSession", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("returns a blob for the given session id", async () => {
+    const blob = new Blob(["data"], { type: "image/png" });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, blob: async () => blob }));
+    const result = await fetchSession("abc-123");
+    expect(result).toBe(blob);
+  });
+
+  it("throws when session not found", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 404 }));
+    await expect(fetchSession("bad-id")).rejects.toThrow("Session not found (404)");
   });
 });

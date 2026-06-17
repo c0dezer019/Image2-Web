@@ -1,5 +1,5 @@
 import { charCellSize } from "./canvas-render";
-import type { AnsiResult, AsciiResult, AutoParams, ConvertParams } from "./types";
+import type { AnsiResult, AsciiResult, AutoParams, ConvertParams, HealthResponse } from "./types";
 
 // Calls go straight to the image2 FastAPI server, bypassing Next.js API
 // routes. Vercel Functions cap request bodies at 4.5MB, which 413s on
@@ -8,18 +8,36 @@ import type { AnsiResult, AsciiResult, AutoParams, ConvertParams } from "./types
 const SERVER_URL = (process.env.NEXT_PUBLIC_IMAGE2_SERVER_URL
   || process.env.NEXT_DEV_IMAGE2_SERVER_URL) || "http://localhost:8000";
 
+let _isLocal = false;
 
-/** Fetches the image2 server's version and status from /health. */
-export async function getServerHealth(): Promise<{ version: string; status: string }> {
+/** Returns true after getServerHealth() has been called and server reported local mode. */
+export function isLocalMode(): boolean {
+  return _isLocal;
+}
+
+/** Fetches the image2 server's version, status, and local mode flag from /health. */
+export async function getServerHealth(): Promise<HealthResponse> {
   const res = await fetch(`${SERVER_URL}/health`);
   if (!res.ok) throw new Error(`Health check failed (${res.status})`);
   const data = await res.json();
-  return { version: data.version ?? "unknown", status: data.status ?? "unknown" };
+  _isLocal = data.local === true;
+  return {
+    version: data.version ?? "unknown",
+    status: data.status ?? "unknown",
+    local: _isLocal,
+  };
 }
 
 /** @deprecated Use getServerHealth instead. */
 export async function getServerVersion(): Promise<string> {
   return (await getServerHealth()).version;
+}
+
+/** Fetch a pre-uploaded file blob by session ID from the local server. */
+export async function fetchSession(sessionId: string): Promise<Blob> {
+  const res = await fetch(`${SERVER_URL}/session/${sessionId}`);
+  if (!res.ok) throw new Error(`Session not found (${res.status})`);
+  return res.blob();
 }
 
 // Mirrors server/main.py's `_validate_output_size` limits. The "Image
