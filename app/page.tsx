@@ -7,7 +7,6 @@ import { OutputHeader } from "@/components/OutputHeader";
 import { OutputCanvas } from "@/components/OutputCanvas";
 import { VersionFooter } from "@/components/VersionFooter";
 import { Footer } from "@/components/Footer";
-import { CliDownload } from "@/components/CliDownload";
 import { BG_HEX, COLORS, FONT_MONO } from "@/lib/theme";
 import { convertImage, effectiveFontSize, getAutoParams } from "@/lib/convert";
 import { getImageDimensions } from "@/lib/image-dimensions";
@@ -340,8 +339,6 @@ export default function Home() {
             Drop a picture below. We forge it into crisp ASCII or full-color ANSI — tune it, then copy or export.
           </p>
         </header>
-
-        <CliDownload />
 
         <DropZone fileName={file?.name ?? null} onFile={handleFile} onError={setError} />
 
