@@ -60,3 +60,9 @@ export interface ConvertParams {
   /** Min mode (image2 CLI's `--min`): caps rendered font size to 8px. Ascii-only. */
   dense: boolean;
 }
+
+export interface HealthResponse {
+  version: string;
+  status: string;
+  local: boolean;
+}

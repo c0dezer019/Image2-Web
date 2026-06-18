@@ -3,12 +3,14 @@ from __future__ import annotations
 import logging
 import os
 import tempfile
+import uuid
 from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from starlette.background import BackgroundTask
 from PIL import Image, UnidentifiedImageError
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
@@ -24,6 +26,9 @@ logger = logging.getLogger("image2")
 # VERSION file carries an independent semver bumped on server changes;
 _version_file = Path(__file__).parent / "VERSION"
 APP_VERSION = _version_file.read_text().strip() if _version_file.exists() else "0.0.0"
+
+LOCAL_MODE = os.getenv("LOCAL_MODE", "false").lower() == "true"
+_MAX_DIM = 100_000 if LOCAL_MODE else 1000
 
 app = FastAPI(title="image2 server")
 
@@ -45,8 +50,9 @@ def _rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONRespons
     )
 
 
-app.add_exception_handler(RateLimitExceeded, _rate_limit_handler)
-app.add_middleware(SlowAPIMiddleware)
+if not LOCAL_MODE:
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_handler)
+    app.add_middleware(SlowAPIMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
@@ -66,10 +72,41 @@ MAX_OUTPUT_COLS = 600
 MAX_OUTPUT_ROWS = 600
 MAX_OUTPUT_CELLS = 250_000
 
+# session_id -> temp file path; populated by /upload, consumed by /session/{id}
+_upload_store: dict[str, str] = {}
+
 
 @app.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok", "version": APP_VERSION}
+def health() -> dict[str, Any]:
+    return {"status": "ok", "version": APP_VERSION, "local": LOCAL_MODE}
+
+
+if LOCAL_MODE:
+    @app.post("/upload")
+    def upload(file: UploadFile = File(...)) -> dict[str, Any]:
+        session_id = str(uuid.uuid4())
+        path = _save_upload(file)
+        try:
+            with Image.open(path) as img:
+                img.verify()
+        except Exception:
+            os.remove(path)
+            raise HTTPException(
+                status_code=422, detail="Could not read image file"
+            )
+        _upload_store[session_id] = path
+        return {"session_id": session_id, "expires_in": 3600}
+
+    @app.get("/session/{session_id}")
+    def get_session(session_id: str) -> FileResponse:
+        path = _upload_store.pop(session_id, None)
+        if not path or not os.path.exists(path):
+            raise HTTPException(status_code=404, detail="Session not found")
+        return FileResponse(
+            path,
+            media_type="application/octet-stream",
+            background=BackgroundTask(os.remove, path),
+        )
 
 
 def _save_upload(file: UploadFile) -> str:
@@ -99,6 +136,8 @@ def _validate_output_size(cols: int, rows: int, *, mode: str) -> None:
         raise HTTPException(
             status_code=422, detail="Output dimensions exceed server limits"
         )
+    if LOCAL_MODE:
+        return
     if (
         cols > MAX_OUTPUT_COLS
         or rows > MAX_OUTPUT_ROWS
@@ -142,13 +181,13 @@ def analyze(
 def convert_ascii(
     request: Request,
     file: UploadFile = File(...),
-    width: int = Form(100, ge=1, le=1000),
+    width: int = Form(100, ge=1, le=_MAX_DIM),
     contrast: float = Form(1.5),
     brightness: float = Form(1.0),
     sharpness: float = Form(2.5, ge=0),
     saturate: float = Form(1.0, ge=0),
     min_lum: float = Form(0.0, ge=0),
-    img_height: int = Form(0, ge=0, le=1000),
+    img_height: int = Form(0, ge=0, le=_MAX_DIM),
     invert: bool = Form(False),
     blur: float = Form(0.0, ge=0, le=25),
 ) -> dict[str, Any]:
@@ -187,7 +226,7 @@ def convert_ascii(
 def convert_ansi(
     request: Request,
     file: UploadFile = File(...),
-    width: int = Form(80, ge=1, le=1000),
+    width: int = Form(80, ge=1, le=_MAX_DIM),
     contrast: float = Form(1.5),
     brightness: float = Form(1.0),
     palette: str = Form("truecolor"),
