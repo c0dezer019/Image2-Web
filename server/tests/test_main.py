@@ -1,3 +1,4 @@
+import importlib
 import io
 import os
 from unittest.mock import patch
@@ -9,6 +10,18 @@ from PIL import Image
 from main import MAX_OUTPUT_COLS, MAX_OUTPUT_ROWS, app
 
 client = TestClient(app)
+
+
+@pytest.fixture
+def local_client():
+    os.environ["LOCAL_MODE"] = "true"
+    import main as main_module
+    importlib.reload(main_module)
+    from fastapi.testclient import TestClient as TC
+    c = TC(main_module.app)
+    yield c
+    os.environ.pop("LOCAL_MODE", None)
+    importlib.reload(main_module)
 
 
 def test_health():
@@ -163,8 +176,8 @@ def test_health_returns_local_true_when_env_set():
         assert res.json()["local"] is True
 
 
-def test_upload_returns_session_id():
-    res = client.post(
+def test_upload_returns_session_id(local_client):
+    res = local_client.post(
         "/upload",
         files={"file": ("test.png", _sample_png_bytes(), "image/png")},
     )
@@ -174,20 +187,20 @@ def test_upload_returns_session_id():
     assert body["expires_in"] == 3600
 
 
-def test_session_returns_uploaded_file():
+def test_session_returns_uploaded_file(local_client):
     png = _sample_png_bytes()
-    upload_res = client.post(
+    upload_res = local_client.post(
         "/upload",
         files={"file": ("test.png", png, "image/png")},
     )
     session_id = upload_res.json()["session_id"]
-    get_res = client.get(f"/session/{session_id}")
+    get_res = local_client.get(f"/session/{session_id}")
     assert get_res.status_code == 200
     assert get_res.content == png
 
 
-def test_session_404_for_unknown_id():
-    res = client.get("/session/does-not-exist")
+def test_session_404_for_unknown_id(local_client):
+    res = local_client.get("/session/does-not-exist")
     assert res.status_code == 404
 
 

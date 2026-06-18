@@ -28,6 +28,7 @@ _version_file = Path(__file__).parent / "VERSION"
 APP_VERSION = _version_file.read_text().strip() if _version_file.exists() else "0.0.0"
 
 LOCAL_MODE = os.getenv("LOCAL_MODE", "false").lower() == "true"
+_MAX_DIM = 100_000 if LOCAL_MODE else 1000
 
 app = FastAPI(title="image2 server")
 
@@ -180,13 +181,13 @@ def analyze(
 def convert_ascii(
     request: Request,
     file: UploadFile = File(...),
-    width: int = Form(100, ge=1, le=1000),
+    width: int = Form(100, ge=1, le=_MAX_DIM),
     contrast: float = Form(1.5),
     brightness: float = Form(1.0),
     sharpness: float = Form(2.5, ge=0),
     saturate: float = Form(1.0, ge=0),
     min_lum: float = Form(0.0, ge=0),
-    img_height: int = Form(0, ge=0, le=1000),
+    img_height: int = Form(0, ge=0, le=_MAX_DIM),
     invert: bool = Form(False),
     blur: float = Form(0.0, ge=0, le=25),
 ) -> dict[str, Any]:
@@ -225,7 +226,7 @@ def convert_ascii(
 def convert_ansi(
     request: Request,
     file: UploadFile = File(...),
-    width: int = Form(80, ge=1, le=1000),
+    width: int = Form(80, ge=1, le=_MAX_DIM),
     contrast: float = Form(1.5),
     brightness: float = Form(1.0),
     palette: str = Form("truecolor"),

@@ -38,7 +38,8 @@ jobs:
     needs: gate
     if: |
       needs.gate.outputs.should_deploy == 'true' &&
-      github.event.workflow_run.head_branch != 'main'
+      github.event.workflow_run.head_branch != 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
 
     steps:
@@ -76,7 +77,8 @@ jobs:
     needs: gate
     if: |
       needs.gate.outputs.should_deploy == 'true' &&
-      github.event.workflow_run.head_branch == 'main'
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
 
     steps:
@@ -138,7 +140,8 @@ jobs:
     needs: gate-web
     if: |
       needs.gate-web.outputs.should_deploy == 'true' &&
-      github.event.workflow_run.head_branch != 'main'
+      github.event.workflow_run.head_branch != 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -169,7 +172,8 @@ jobs:
     needs: gate-web
     if: |
       needs.gate-web.outputs.should_deploy == 'true' &&
-      github.event.workflow_run.head_branch == 'main'
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
