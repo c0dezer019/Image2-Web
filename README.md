@@ -70,6 +70,41 @@ pnpm lint     # eslint
 pnpm test     # vitest
 ```
 
+## Running Locally via Docker
+
+Image2-Web can run on your own machine via the [image2 CLI](https://github.com/c0dezer019/image2).
+
+```bash
+img2 ui          # spin up and open browser
+img2 ui --stop   # tear down
+```
+
+When running locally, the server operates in **local mode**:
+- Per-IP rate limiting is disabled
+- Output size caps (600×600 / 250,000 cells) are lifted
+- The version footer shows `local` in place of the server origin
+
+### Manual Docker Compose
+
+```bash
+docker compose up -d   # from the image2 repo root
+```
+
+The compose stack uses `LOCAL_MODE=true` on the server container. The frontend
+image has `http://localhost:8000` baked in as the server URL.
+
+### Session Pre-seed URL Params
+
+The `--ui` flag on `img2 ascii`/`img2 ansi` opens the browser with the image
+pre-loaded via URL params:
+
+```
+http://localhost:3000?session=<id>&mode=ascii&contrast=1.2&brightness=1.1
+```
+
+Supported params: `session`, `mode`, `contrast`, `brightness`, `sharpness`,
+`saturate`, `min_lum`, `width`, `palette`.
+
 ## Deployment
 
 Frontend deploys to Vercel. Server deploys separately (Docker, e.g.
