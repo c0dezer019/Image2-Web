@@ -32,7 +32,7 @@ async function fetchRelease(): Promise<{ tag: string; assets: ReleaseAssets }> {
     if (!res.ok) throw new Error("non-ok");
     const data = await res.json();
 
-    const tag: string = data.tag_name ?? FALLBACK_TAG;
+    const tag: string = encodeURIComponent(data.tag_name ?? FALLBACK_TAG);
     const raw: Array<{ name: string; browser_download_url: string }> = data.assets ?? [];
     const find = (pred: (n: string) => boolean) =>
       raw.find((a) => pred(a.name))?.browser_download_url;

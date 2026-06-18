@@ -30,7 +30,7 @@ describe("detectPlatform", () => {
 
   it("returns macOS arm64 for Macintosh UA", () => {
     const r = detectPlatform("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)", MOCK);
-    expect(r?.label).toBe("macOS (Apple Silicon)");
+    expect(r?.label).toBe("macOS (arm64)");
     expect(r?.url).toBe(MOCK.macArm64);
   });
 

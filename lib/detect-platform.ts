@@ -19,7 +19,7 @@ export function detectPlatform(ua: string, assets: ReleaseAssets): PlatformDownl
     return { label: "Linux x86_64", url: assets.linuxAmd64 };
   }
   if (ua.includes("Macintosh")) {
-    return { label: "macOS (Apple Silicon)", url: assets.macArm64 };
+    return { label: "macOS (arm64)", url: assets.macArm64 };
   }
   return null;
 }
