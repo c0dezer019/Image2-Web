@@ -1,7 +1,7 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SessionLoader } from "@/components/SessionLoader";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { DropZone } from "@/components/DropZone";
 import { ControlsBar } from "@/components/ControlsBar";
 import { OutputHeader } from "@/components/OutputHeader";
@@ -267,19 +267,29 @@ export default function Home() {
 
   return (
     <div style={{ minHeight: "100vh", background: COLORS.bg, color: COLORS.text, position: "relative", overflow: "hidden" }}>
-      <Suspense>
-        <SessionLoader
-          onFile={handleFile}
-          onMode={setMode}
-          onContrast={setContrast}
-          onBrightness={setBrightness}
-          onSharpness={setSharpness}
-          onSaturate={setSaturate}
-          onMinLum={setMinLum}
-          onWidth={(n) => { if (!Number.isFinite(n)) return; setWidth(Math.max(1, Math.round(n))); }}
-          onPalette={setPalette}
-        />
-      </Suspense>
+      <style>{`
+        @media (max-width: 1080px) { .cli-gutter { display: none !important; } }
+      `}</style>
+      <Link
+        href="/download"
+        className="cli-gutter"
+        style={{
+          position: "absolute",
+          top: 46,
+          right: 24,
+          zIndex: 3,
+          fontFamily: FONT_MONO,
+          fontSize: 10,
+          letterSpacing: "0.18em",
+          textTransform: "uppercase",
+          color: COLORS.accent,
+          textDecoration: "none",
+          border: `1px solid ${COLORS.accent}`,
+          padding: "6px 12px",
+        }}
+      >
+        ↓ CLI
+      </Link>
       <div
         style={{
           position: "fixed",
