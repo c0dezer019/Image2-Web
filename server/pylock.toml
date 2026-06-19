@@ -113,14 +113,14 @@ sha256 = "597bfef186b6f60181535a29fbe44865ce137a5079f295b479886c82729d5f3f"
 
 [[packages]]
 name = "fastapi"
-version = "0.137.1"
+version = "0.137.2"
 
 [[packages.wheels]]
-name = "fastapi-0.137.1-py3-none-any.whl"
-url = "https://files.pythonhosted.org/packages/da/35/380b9a5922f4340e51c309cde09e5bd32e62f02302971bee30dc15aa0624/fastapi-0.137.1-py3-none-any.whl"
+name = "fastapi-0.137.2-py3-none-any.whl"
+url = "https://files.pythonhosted.org/packages/2f/ed/0c6b644e99fb5697d8bdcd36cdb47c52e77a63fc7a1514b1f03a6ecab955/fastapi-0.137.2-py3-none-any.whl"
 
 [packages.wheels.hashes]
-sha256 = "64f6983c59e45c4b9fdc44e57cb8035c2451ee91ea8e8ec042aca37de7cf6b69"
+sha256 = "791d36261e916a98b25ac85ee591bc3db159394070f6d3d096d94fb378f60ce2"
 
 [[packages]]
 name = "h11"
@@ -183,8 +183,8 @@ name = "image2"
 [packages.vcs]
 type = "git"
 url = "https://github.com/c0dezer019/image2.git"
-requested-revision = "v1.2.2"
-commit-id = "34629767ead46182780805eb3dd2fff94cb6fa06"
+requested-revision = "v1.5.2"
+commit-id = "575f9894cc72fc5165da79904d359403f25d3c93"
 
 [[packages]]
 name = "limits"
@@ -251,6 +251,17 @@ url = "https://files.pythonhosted.org/packages/89/1d/8eff589b45bb8190a9d12c49cfa
 
 [packages.wheels.hashes]
 sha256 = "7a5f930472650a82629163023e630d160863fce524c616f4e5186e5de9d9a49b"
+
+[[packages]]
+name = "pyperclip"
+version = "1.11.0"
+
+[[packages.wheels]]
+name = "pyperclip-1.11.0-py3-none-any.whl"
+url = "https://files.pythonhosted.org/packages/df/80/fc9d01d5ed37ba4c42ca2b55b4339ae6e200b456be3a1aaddf4a9fa99b8c/pyperclip-1.11.0-py3-none-any.whl"
+
+[packages.wheels.hashes]
+sha256 = "299403e9ff44581cb9ba2ffeed69c7aa96a008622ad0c46cb575ca75b5b84273"
 
 [[packages]]
 name = "python-dotenv"
