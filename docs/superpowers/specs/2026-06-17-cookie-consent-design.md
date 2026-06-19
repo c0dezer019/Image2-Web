@@ -16,11 +16,11 @@ Roll our own — no external library. ~80 lines total. Matches existing inline-C
 ### `lib/cookie-consent.ts`
 - Exports `ConsentState = "accepted" | "rejected" | null`
 - Exports storage key constant `CONSENT_KEY = "cookie_consent"`
-- Exports `getConsent(): ConsentState` — reads `localStorage`, safe to call server-side (returns `null` if `window` unavailable)
+- Exports `getConsent(): ConsentState` — reads a `cookie_consent` cookie (1-year expiry), safe to call server-side (returns `null` if `document` unavailable)
 
 ### `components/CookieBanner.tsx`
 - `"use client"` directive
-- On mount: reads `localStorage[CONSENT_KEY]`; if non-null, renders nothing (already decided)
+- On mount: reads the `cookie_consent` cookie; if non-null, renders nothing (already decided)
 - Renders fixed bottom-right card when state is `null`
 - Two actions: **Accept All** (writes `"accepted"`) and **Reject** (writes `"rejected"`); both dismiss the banner
 - Links "Privacy Policy" text to `/privacy`
