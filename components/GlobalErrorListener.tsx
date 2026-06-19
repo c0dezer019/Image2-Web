@@ -7,20 +7,20 @@ export function GlobalErrorListener() {
   useEffect(() => {
     function handleError(event: ErrorEvent) {
       const err =
-        event.error instanceof Error ? event.error : new Error(event.message);
+        event.error instanceof Error ? event.error : new Error(event.message || "Unknown error");
       reportCrash(buildFrontendPayload(err, null)).then((failed) => {
         if (failed) console.warn("[image2] crash reporter unreachable", failed);
-      });
+      }).catch(() => console.warn("[image2] crash reporter unreachable"));
     }
 
     function handleRejection(event: PromiseRejectionEvent) {
       const err =
         event.reason instanceof Error
           ? event.reason
-          : new Error(String(event.reason));
+          : new Error(typeof event.reason === "string" ? event.reason : "Unhandled promise rejection");
       reportCrash(buildFrontendPayload(err, null)).then((failed) => {
         if (failed) console.warn("[image2] crash reporter unreachable", failed);
-      });
+      }).catch(() => console.warn("[image2] crash reporter unreachable"));
     }
 
     window.addEventListener("error", handleError);
