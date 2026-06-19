@@ -2,11 +2,17 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { type ConsentState, getConsent, setConsent } from "@/lib/cookie-consent";
+import {
+  type ConsentState,
+  getConsent,
+  setConsent,
+  setCrashConsent,
+} from "@/lib/cookie-consent";
 import { COLORS, FONT_MONO } from "@/lib/theme";
 
 export function CookieBanner() {
   const [consent, setConsentState] = useState<ConsentState>("accepted");
+  const [crashLogging, setCrashLogging] = useState(true);
 
   useEffect(() => {
     setConsentState(getConsent());
@@ -14,6 +20,7 @@ export function CookieBanner() {
 
   function handle(state: "accepted" | "rejected") {
     setConsent(state);
+    setCrashConsent(crashLogging ? "accepted" : "rejected");
     setConsentState(state);
   }
 
@@ -56,6 +63,27 @@ export function CookieBanner() {
         </Link>{" "}
         for details.
       </p>
+      <label
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 8,
+          marginBottom: 16,
+          fontSize: 11,
+          letterSpacing: "0.04em",
+          textTransform: "none",
+          color: COLORS.muted,
+          cursor: "pointer",
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={crashLogging}
+          onChange={(e) => setCrashLogging(e.target.checked)}
+          style={{ marginTop: 2 }}
+        />
+        Send crash reports to help us fix bugs
+      </label>
       <div style={{ display: "flex", gap: 8 }}>
         <button
           type="button"

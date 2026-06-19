@@ -66,3 +66,23 @@ export interface HealthResponse {
   status: string;
   local: boolean;
 }
+
+export interface FrontendCrashPayload {
+  source: "frontend";
+  timestamp: string;
+  error: string;
+  stack: string;
+  url: string;
+  userAgent: string;
+  params: ConvertParams | null;
+}
+
+export interface BackendCrashPayload {
+  source: "backend";
+  timestamp: string;
+  error: string;
+  endpoint: string;
+  params: ConvertParams | null;
+}
+
+export type CrashPayload = FrontendCrashPayload | BackendCrashPayload;
