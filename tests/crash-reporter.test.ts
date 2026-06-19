@@ -5,6 +5,7 @@ import {
   buildBackendPayload,
 } from "../lib/crash-reporter";
 import type { ConvertParams } from "../lib/types";
+import { setCrashConsent } from "../lib/cookie-consent";
 
 const baseParams: ConvertParams = {
   mode: "ascii",
@@ -57,6 +58,7 @@ describe("buildBackendPayload", () => {
 
 describe("reportCrash", () => {
   beforeEach(() => {
+    localStorage.clear();
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({ ok: true }),
@@ -106,5 +108,23 @@ describe("reportCrash", () => {
         body: JSON.stringify(payload),
       }),
     );
+  });
+
+  it("does not call fetch when crash consent is rejected", async () => {
+    setCrashConsent("rejected");
+    const mockFetch = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal("fetch", mockFetch);
+    const payload = buildFrontendPayload(new Error("test"), null);
+    const result = await reportCrash(payload);
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(result).toBeNull();
+  });
+
+  it("calls fetch when crash consent is accepted (default)", async () => {
+    const mockFetch = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal("fetch", mockFetch);
+    const payload = buildFrontendPayload(new Error("test"), null);
+    await reportCrash(payload);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,4 +1,5 @@
 import type { CrashPayload, ConvertParams, FrontendCrashPayload, BackendCrashPayload } from "./types";
+import { getCrashConsent } from "./cookie-consent";
 
 export type { CrashPayload, FrontendCrashPayload, BackendCrashPayload };
 
@@ -34,8 +35,10 @@ export function buildBackendPayload(
 /**
  * POSTs payload to /api/crash-report.
  * Returns null on success, the payload on failure (caller shows fallback UI).
+ * Returns null without sending if the user has rejected crash logging consent.
  */
 export async function reportCrash(payload: CrashPayload): Promise<CrashPayload | null> {
+  if (getCrashConsent() === "rejected") return null;
   try {
     const res = await fetch("/api/crash-report", {
       method: "POST",
