@@ -13,7 +13,11 @@ export function CrashReportBanner({ payload, onDismiss }: Props) {
   const [copied, setCopied] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const json = JSON.stringify(payload, null, 2);
-  const issueBody = encodeURIComponent("```json\n" + json + "\n```");
+  const MAX_ISSUE_JSON = 3000;
+  const issueJson = json.length > MAX_ISSUE_JSON
+    ? json.slice(0, MAX_ISSUE_JSON) + "\n… (truncated — copy full report below)"
+    : json;
+  const issueBody = encodeURIComponent("```json\n" + issueJson + "\n```");
   const issueUrl =
     "https://github.com/c0dezer019/image2-web/issues/new?title=Crash+Report&body=" +
     issueBody;

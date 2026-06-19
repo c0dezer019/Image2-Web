@@ -144,11 +144,6 @@ export default function Home() {
         setBrightness(FIXED_ENHANCE_DEFAULTS.brightness);
         setSaturate(FIXED_ENHANCE_DEFAULTS.saturate);
         setMinLum(FIXED_ENHANCE_DEFAULTS.minLum);
-        const message = err instanceof Error ? err.message : String(err);
-        const payload = buildBackendPayload(message, "/analyze", null);
-        reportCrash(payload).then((failed) => {
-          if (failed) setCrashPayload(failed);
-        });
       })
       .finally(() => setAnalyzing(false));
   }, [invert, blur]);
