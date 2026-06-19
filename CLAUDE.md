@@ -35,6 +35,8 @@ tests/       Vitest frontend tests
 |-----|---------|-------|
 | `NEXT_PUBLIC_IMAGE2_SERVER_URL` | `http://localhost:8000` | Must be in server's CORS allowlist |
 | `NEXT_PUBLIC_APP_VERSION` | `dev` | Set from `VERCEL_GIT_COMMIT_SHA` in `next.config.ts` |
+| `CRASH_WEBHOOK_URL` | none | n8n webhook URL, server-side only. Used by `/api/crash-report` and `/api/bug` |
+| `IMG2_BUG_TOKEN` | none | Shared secret the `img2` CLI sends as `Authorization: Bearer <token>` to `/api/bug` |
 
 ## Gotchas
 
