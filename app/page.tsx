@@ -16,6 +16,8 @@ import { drawAsciiGrid, drawAnsiGrid } from "@/lib/canvas-render";
 import { downloadCanvasPng, downloadText } from "@/lib/export";
 import type { AnsiPalette, AnsiResult, AsciiResult, OutputMode } from "@/lib/types";
 import { heightForWidth, widthForHeight, type AspectRatioPreset } from "@/lib/aspect-ratio";
+import { buildBackendPayload, reportCrash, type CrashPayload } from "@/lib/crash-reporter";
+import { CrashReportBanner } from "@/components/CrashReportBanner";
 
 // Old fixed enhancement defaults (image2 CLI's --no-auto values). Used as
 // the initial state before any image is analyzed, and as a fallback if
@@ -54,6 +56,7 @@ export default function Home() {
   const [fontColor, setFontColor] = useState("#ffffff");
   const [result, setResult] = useState<AsciiResult | AnsiResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [crashPayload, setCrashPayload] = useState<CrashPayload | null>(null);
   const [copied, setCopied] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const requestIdRef = useRef(0);
@@ -86,6 +89,7 @@ export default function Home() {
     };
     const timer = setTimeout(() => {
       setError(null);
+      setCrashPayload(null);
       convertImage(file, params)
         .then((data) => {
           if (requestIdRef.current === id) setResult(data);
@@ -94,6 +98,11 @@ export default function Home() {
           if (requestIdRef.current === id) {
             setError(err.message);
             setResult(null);
+            const endpoint = `/convert/${params.mode}`;
+            const payload = buildBackendPayload(err.message, endpoint, params);
+            reportCrash(payload).then((failed) => {
+              if (failed) setCrashPayload(failed);
+            });
           }
         });
     }, 250);
@@ -130,13 +139,16 @@ export default function Home() {
         setSaturate(auto.saturate);
         setMinLum(auto.minLum);
       })
-      .catch(() => {
-        // Auto-detection failed (e.g. server unreachable) — fall back to
-        // the old fixed defaults rather than leaving stale values.
+      .catch((err: unknown) => {
         setContrast(FIXED_ENHANCE_DEFAULTS.contrast);
         setBrightness(FIXED_ENHANCE_DEFAULTS.brightness);
         setSaturate(FIXED_ENHANCE_DEFAULTS.saturate);
         setMinLum(FIXED_ENHANCE_DEFAULTS.minLum);
+        const message = err instanceof Error ? err.message : String(err);
+        const payload = buildBackendPayload(message, "/analyze", null);
+        reportCrash(payload).then((failed) => {
+          if (failed) setCrashPayload(failed);
+        });
       })
       .finally(() => setAnalyzing(false));
   }, [invert, blur]);
@@ -427,6 +439,12 @@ export default function Home() {
         />
 
         <OutputCanvas ref={canvasRef} hasOutput={!!result} errorMessage={error} />
+        {crashPayload && (
+          <CrashReportBanner
+            payload={crashPayload}
+            onDismiss={() => setCrashPayload(null)}
+          />
+        )}
 
         <VersionFooter />
         <Footer />
