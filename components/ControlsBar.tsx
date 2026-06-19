@@ -526,7 +526,7 @@ export function ControlsBar({
             <BgInput key={`bg:${bg}`} bg={bg} onBgChange={onBgChange} />
           </div>
 
-          <div style={{ flex: "1 1 160px", display: "flex", alignItems: "flex-end" }}>
+          <div style={{ flex: "1 1 160px", display: "flex", alignItems: "flex-end", gap: 20 }}>
             <label
               htmlFor="dense-checkbox"
               style={{ ...labelStyle, marginBottom: 0, display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}
@@ -540,9 +540,6 @@ export function ControlsBar({
               />
               Min mode
             </label>
-          </div>
-
-          <div style={{ flex: "1 1 160px", display: "flex", alignItems: "flex-end" }}>
             <label
               htmlFor="monochrome-checkbox"
               style={{ ...labelStyle, marginBottom: 0, display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}
