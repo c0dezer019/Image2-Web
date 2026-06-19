@@ -46,7 +46,6 @@ export default function Home() {
   const [sourceHeight, setSourceHeight] = useState(0);
   const [targetAspectRatio, setTargetAspectRatio] = useState<number | null>(null);
   const [bg, setBg] = useState(BG_HEX);
-  const [select, setSelect] = useState(false);
   const [invert, setInvert] = useState(false);
   const [blur, setBlur] = useState(0);
   const [dense, setDense] = useState(false);
@@ -112,11 +111,11 @@ export default function Home() {
     if (mode === "ascii") {
       // image2 CLI's `--min` (min mode) caps rendered font size to 8px.
       const renderFontSize = effectiveFontSize(fontSize, dense);
-      drawAsciiGrid(ctx, result as AsciiResult, renderFontSize, bg, select, monochrome, fontColor);
+      drawAsciiGrid(ctx, result as AsciiResult, renderFontSize, bg, monochrome, fontColor);
     } else {
       drawAnsiGrid(ctx, result as AnsiResult, fontSize);
     }
-  }, [result, mode, fontSize, bg, select, monochrome, fontColor, dense]);
+  }, [result, mode, fontSize, bg, monochrome, fontColor, dense]);
 
   const runAutoParams = useCallback((f: Blob) => {
     setAnalyzing(true);
@@ -382,7 +381,6 @@ export default function Home() {
           targetAspectRatio={targetAspectRatio}
           sourceAspectRatio={sourceAspectRatio}
           bg={bg}
-          select={select}
           invert={invert}
           blur={blur}
           dense={dense}
@@ -408,7 +406,6 @@ export default function Home() {
           onLockAspectChange={handleLockAspectChange}
           onAspectPresetChange={handleAspectPresetChange}
           onBgChange={setBg}
-          onSelectChange={setSelect}
           onInvertChange={setInvert}
           onBlurChange={handleBlurChange}
           onDenseChange={setDense}

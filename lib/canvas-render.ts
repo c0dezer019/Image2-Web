@@ -12,7 +12,6 @@ export function drawAsciiGrid(
   result: AsciiResult,
   fontSize: number,
   bg: string = BG_HEX,
-  select: boolean = false,
   monochrome: boolean = false,
   fontColor: string = "#ffffff",
 ): void {
@@ -39,13 +38,6 @@ export function drawAsciiGrid(
     });
   });
 
-  if (select) {
-    const halfH = charH / 2;
-    ctx.fillStyle = "rgba(0,0,0,0.2)";
-    for (let y = 0; y < result.rows; y++) {
-      ctx.fillRect(0, y * charH + halfH, ctx.canvas.width, halfH);
-    }
-  }
 }
 
 export function drawAnsiGrid(
