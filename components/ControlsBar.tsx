@@ -21,7 +21,6 @@ interface ControlsBarProps {
   targetAspectRatio: number | null;
   sourceAspectRatio: number | null;
   bg: string;
-  select: boolean;
   invert: boolean;
   blur: number;
   dense: boolean;
@@ -44,7 +43,6 @@ interface ControlsBarProps {
   onLockAspectChange: (locked: boolean) => void;
   onAspectPresetChange: (preset: AspectRatioPreset) => void;
   onBgChange: (s: string) => void;
-  onSelectChange: (b: boolean) => void;
   onInvertChange: (b: boolean) => void;
   onBlurChange: (n: number) => void;
   onDenseChange: (b: boolean) => void;
@@ -290,7 +288,6 @@ export function ControlsBar({
   targetAspectRatio,
   sourceAspectRatio,
   bg,
-  select,
   invert,
   blur,
   dense,
@@ -313,7 +310,6 @@ export function ControlsBar({
   onLockAspectChange,
   onAspectPresetChange,
   onBgChange,
-  onSelectChange,
   onInvertChange,
   onBlurChange,
   onDenseChange,
@@ -530,23 +526,7 @@ export function ControlsBar({
             <BgInput key={`bg:${bg}`} bg={bg} onBgChange={onBgChange} />
           </div>
 
-          <div style={{ flex: "1 1 160px", display: "flex", alignItems: "flex-end" }}>
-            <label
-              htmlFor="select-checkbox"
-              style={{ ...labelStyle, marginBottom: 0, display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}
-            >
-              <input
-                id="select-checkbox"
-                type="checkbox"
-                checked={select}
-                onChange={(e) => onSelectChange(e.target.checked)}
-                style={{ accentColor: COLORS.accent }}
-              />
-              Select highlight
-            </label>
-          </div>
-
-          <div style={{ flex: "1 1 160px", display: "flex", alignItems: "flex-end" }}>
+          <div style={{ flex: "1 1 160px", display: "flex", alignItems: "flex-end", gap: 20 }}>
             <label
               htmlFor="dense-checkbox"
               style={{ ...labelStyle, marginBottom: 0, display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}
@@ -560,9 +540,6 @@ export function ControlsBar({
               />
               Min mode
             </label>
-          </div>
-
-          <div style={{ flex: "1 1 160px", display: "flex", alignItems: "flex-end" }}>
             <label
               htmlFor="monochrome-checkbox"
               style={{ ...labelStyle, marginBottom: 0, display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}

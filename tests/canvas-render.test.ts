@@ -50,13 +50,6 @@ describe("drawAsciiGrid", () => {
     expect(ctx.fillRect).toHaveBeenCalledTimes(1);
   });
 
-  it("draws a row-striping overlay when select is enabled", () => {
-    const ctx = makeCtx();
-    drawAsciiGrid(ctx as unknown as CanvasRenderingContext2D, result, 10, "#070c12", true);
-    // 1 background fill + 1 stripe rect per row
-    expect(ctx.fillRect).toHaveBeenCalledTimes(1 + result.rows);
-  });
-
   it("renders every glyph in font-color when monochrome is enabled", () => {
     const ctx = makeCtx();
     const fillStyles: string[] = [];
@@ -65,7 +58,7 @@ describe("drawAsciiGrid", () => {
       set(v: string) { fillStyles.push(v); },
     });
 
-    drawAsciiGrid(ctx as unknown as CanvasRenderingContext2D, result, 10, "#070c12", false, true, "#00ff00");
+    drawAsciiGrid(ctx as unknown as CanvasRenderingContext2D, result, 10, "#070c12", true, "#00ff00");
 
     // bg fill, then monochrome fillStyle set once before drawing glyphs
     expect(fillStyles).toContain("#00ff00");
