@@ -3,4 +3,4 @@ uvicorn[standard]
 python-multipart
 slowapi
 httpx2
-image2 @ git+https://github.com/c0dezer019/image2.git@v1.4.3
+image2 @ git+https://github.com/c0dezer019/image2.git@v1.5.0
