@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Analytics } from '@vercel/analytics/next';
 import { CookieBanner } from "@/components/CookieBanner";
+import { GlobalErrorListener } from "@/components/GlobalErrorListener";
 import "./globals.css";
 
 const spaceGrotesk = localFont({
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${spaceGrotesk.variable} ${dmMono.variable}`}>
       <body>
+        <GlobalErrorListener />
         {children}
         <Analytics />
         <CookieBanner />
