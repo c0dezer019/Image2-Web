@@ -27,6 +27,9 @@ export function Footer() {
     >
       <span>The App Foundry</span>
       <div style={{ display: "flex", gap: 20 }}>
+        <Link href="/feedback" style={LINK_STYLE}>
+          Feedback
+        </Link>
         <Link href="/terms" style={LINK_STYLE}>
           Terms
         </Link>
