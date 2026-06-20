@@ -80,10 +80,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
+  const headers: HeadersInit = { "Content-Type": "application/json" };
+  const cfAccessId = process.env.CF_ACCESS_CLIENT_ID;
+  const cfAccessSecret = process.env.CF_ACCESS_CLIENT_SECRET;
+  if (cfAccessId && cfAccessSecret) {
+    headers["CF-Access-Client-Id"] = cfAccessId;
+    headers["CF-Access-Client-Secret"] = cfAccessSecret;
+  }
+
   try {
     const res = await fetch(webhookUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(body),
     });
     if (!res.ok) {
