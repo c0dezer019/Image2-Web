@@ -80,7 +80,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
-  const headers: HeadersInit = { "Content-Type": "application/json" };
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    "User-Agent": "Mozilla/5.0 (compatible; Image2WebBugReport/1.0)",
+  };
   const cfAccessId = process.env.CF_ACCESS_CLIENT_ID;
   const cfAccessSecret = process.env.CF_ACCESS_CLIENT_SECRET;
   if (cfAccessId && cfAccessSecret) {
