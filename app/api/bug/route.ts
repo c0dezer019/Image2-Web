@@ -87,10 +87,12 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify(body),
     });
     if (!res.ok) {
+      console.error("[api/bug] webhook responded with", res.status, await res.text().catch(() => ""));
       return NextResponse.json({ error: "Webhook failed" }, { status: 502 });
     }
     return NextResponse.json({ ok: true });
-  } catch {
+  } catch (err) {
+    console.error("[api/bug] webhook fetch threw", err);
     return NextResponse.json({ error: "Webhook failed" }, { status: 502 });
   }
 }
