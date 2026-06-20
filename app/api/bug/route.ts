@@ -57,7 +57,11 @@ export async function POST(req: NextRequest) {
   try {
     const res = await fetch(webhookUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "CF-Access-Client-Id": process.env.CF_ACCESS_CLIENT_ID ?? "",
+        "CF-Access-Client-Secret": process.env.CF_ACCESS_CLIENT_SECRET ?? "",
+      },
       body: JSON.stringify(body),
     });
     if (!res.ok) {
