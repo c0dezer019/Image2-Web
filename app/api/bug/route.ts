@@ -4,16 +4,20 @@ interface FeedbackPayload {
   type: "feedback";
   message: string;
   timestamp: string;
+  url?: string;
+  userAgent?: string;
 }
 
 interface BugPayload {
   type: "bug";
   description: string;
-  command: string | null;
-  log: string | null;
   timestamp: string;
-  platform: string;
-  python_version: string;
+  command?: string | null;
+  log?: string | null;
+  platform?: string;
+  python_version?: string;
+  url?: string;
+  userAgent?: string;
 }
 
 type BugReportPayload = FeedbackPayload | BugPayload;
@@ -31,16 +35,21 @@ function isValidPayload(body: unknown): body is BugReportPayload {
 }
 
 export async function POST(req: NextRequest) {
-  const token = process.env.IMG2_BUG_TOKEN;
   const webhookUrl = process.env.CRASH_WEBHOOK_URL;
 
-  if (!token || !webhookUrl) {
+  if (!webhookUrl) {
     return NextResponse.json({ error: "Bug reporting not configured" }, { status: 503 });
   }
 
+  // The img2 CLI authenticates with a shared bearer token. Browser
+  // submissions from the website's feedback form are same-origin and omit
+  // the header entirely, so only enforce the check when one is present.
   const auth = req.headers.get("authorization");
-  if (auth !== `Bearer ${token}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (auth !== null) {
+    const token = process.env.IMG2_BUG_TOKEN;
+    if (!token || auth !== `Bearer ${token}`) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
   }
 
   let body: unknown;
