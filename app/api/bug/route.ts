@@ -1,11 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Data URLs are ~33% larger than the underlying bytes; cap the encoded
+// string generously above the client's 4MB raw-file limit.
+const MAX_SCREENSHOT_LENGTH = 6 * 1024 * 1024;
+
 interface FeedbackPayload {
   type: "feedback";
   message: string;
   timestamp: string;
   url?: string;
   userAgent?: string;
+  browser?: string;
+  screenshot?: string | null;
+  jobParams?: unknown;
+  jobError?: string | null;
 }
 
 interface BugPayload {
@@ -18,6 +26,10 @@ interface BugPayload {
   python_version?: string;
   url?: string;
   userAgent?: string;
+  browser?: string;
+  screenshot?: string | null;
+  jobParams?: unknown;
+  jobError?: string | null;
 }
 
 type BugReportPayload = FeedbackPayload | BugPayload;
@@ -25,6 +37,11 @@ type BugReportPayload = FeedbackPayload | BugPayload;
 function isValidPayload(body: unknown): body is BugReportPayload {
   if (typeof body !== "object" || body === null) return false;
   const b = body as Record<string, unknown>;
+  if (b.screenshot != null) {
+    if (typeof b.screenshot !== "string" || b.screenshot.length > MAX_SCREENSHOT_LENGTH) {
+      return false;
+    }
+  }
   if (b.type === "feedback") {
     return typeof b.message === "string" && typeof b.timestamp === "string";
   }

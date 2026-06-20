@@ -18,6 +18,7 @@ import type { AnsiPalette, AnsiResult, AsciiResult, OutputMode } from "@/lib/typ
 import { heightForWidth, widthForHeight, type AspectRatioPreset } from "@/lib/aspect-ratio";
 import { buildBackendPayload, reportCrash, type CrashPayload } from "@/lib/crash-reporter";
 import { CrashReportBanner } from "@/components/CrashReportBanner";
+import { saveLastJobState } from "@/lib/job-state";
 
 // Old fixed enhancement defaults (image2 CLI's --no-auto values). Used as
 // the initial state before any image is analyzed, and as a fallback if
@@ -91,12 +92,16 @@ export default function Home() {
       setCrashPayload(null);
       convertImage(file, params)
         .then((data) => {
-          if (requestIdRef.current === id) setResult(data);
+          if (requestIdRef.current === id) {
+            setResult(data);
+            saveLastJobState(params, null);
+          }
         })
         .catch((err: Error) => {
           if (requestIdRef.current === id) {
             setError(err.message);
             setResult(null);
+            saveLastJobState(params, err.message);
             const endpoint = `/convert/${params.mode}`;
             const payload = buildBackendPayload(err.message, endpoint, params);
             reportCrash(payload).then((failed) => {

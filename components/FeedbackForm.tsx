@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { submitFeedback, type FeedbackKind } from "@/lib/feedback";
+import { useEffect, useState } from "react";
+import { submitFeedback, readScreenshot, type FeedbackKind } from "@/lib/feedback";
+import { getBrowserInfo } from "@/lib/browser-info";
+import { getLastJobState, type LastJobState } from "@/lib/job-state";
 import { COLORS, FONT_MONO } from "@/lib/theme";
 
 const MIN_LENGTH = 10;
@@ -24,10 +26,51 @@ const TOGGLE_ACTIVE: React.CSSProperties = {
   color: COLORS.accent,
 };
 
+const FIELD_LABEL_STYLE: React.CSSProperties = {
+  fontFamily: FONT_MONO,
+  fontSize: 10,
+  letterSpacing: "0.18em",
+  textTransform: "uppercase",
+  color: COLORS.muted,
+  marginBottom: 8,
+};
+
 export function FeedbackForm() {
   const [kind, setKind] = useState<FeedbackKind>("feedback");
   const [text, setText] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [browser, setBrowser] = useState("");
+  const [screenshot, setScreenshot] = useState<string | null>(null);
+  const [screenshotName, setScreenshotName] = useState<string | null>(null);
+  const [screenshotError, setScreenshotError] = useState<string | null>(null);
+  const [jobState, setJobState] = useState<LastJobState | null>(null);
+  const [includeJobState, setIncludeJobState] = useState(true);
+
+  useEffect(() => {
+    setBrowser(getBrowserInfo(navigator.userAgent));
+    setJobState(getLastJobState());
+  }, []);
+
+  async function handleScreenshotChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setScreenshotError(null);
+    try {
+      const dataUrl = await readScreenshot(file);
+      setScreenshot(dataUrl);
+      setScreenshotName(file.name);
+    } catch (err) {
+      setScreenshot(null);
+      setScreenshotName(null);
+      setScreenshotError(err instanceof Error ? err.message : "Could not read screenshot");
+    }
+  }
+
+  function removeScreenshot() {
+    setScreenshot(null);
+    setScreenshotName(null);
+    setScreenshotError(null);
+  }
 
   const tooShort = text.trim().length < MIN_LENGTH;
 
@@ -36,10 +79,14 @@ export function FeedbackForm() {
     if (tooShort || status === "sending") return;
 
     setStatus("sending");
-    const ok = await submitFeedback(kind, text.trim());
+    const ok = await submitFeedback(kind, text.trim(), {
+      screenshot,
+      jobState: kind === "bug" && includeJobState ? jobState : null,
+    });
     if (ok) {
       setStatus("sent");
       setText("");
+      removeScreenshot();
     } else {
       setStatus("error");
     }
@@ -87,7 +134,80 @@ export function FeedbackForm() {
         }}
       />
 
-      <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 16 }}>
+      <div style={{ marginTop: 20 }}>
+        <div style={FIELD_LABEL_STYLE}>Browser</div>
+        <div style={{ fontFamily: FONT_MONO, fontSize: 13, color: COLORS.text }}>
+          {browser || "Detecting…"}
+        </div>
+      </div>
+
+      <div style={{ marginTop: 20 }}>
+        <div style={FIELD_LABEL_STYLE}>Screenshot (optional)</div>
+        {screenshot ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <img
+              src={screenshot}
+              alt="Screenshot preview"
+              style={{ maxHeight: 80, border: `1px solid ${COLORS.border}` }}
+            />
+            <span style={{ fontFamily: FONT_MONO, fontSize: 12, color: COLORS.muted }}>
+              {screenshotName}
+            </span>
+            <button
+              type="button"
+              onClick={removeScreenshot}
+              style={{
+                background: "none",
+                border: "none",
+                color: COLORS.muted,
+                cursor: "pointer",
+                fontFamily: FONT_MONO,
+                fontSize: 12,
+                textDecoration: "underline",
+                padding: 0,
+              }}
+            >
+              Remove
+            </button>
+          </div>
+        ) : (
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleScreenshotChange}
+            style={{ fontFamily: FONT_MONO, fontSize: 12, color: COLORS.muted }}
+          />
+        )}
+        {screenshotError && (
+          <div style={{ fontFamily: FONT_MONO, fontSize: 11, color: COLORS.muted, marginTop: 6 }}>
+            {screenshotError}
+          </div>
+        )}
+      </div>
+
+      {kind === "bug" && jobState && (
+        <div style={{ marginTop: 20 }}>
+          <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={includeJobState}
+              onChange={(e) => setIncludeJobState(e.target.checked)}
+              style={{ marginTop: 3 }}
+            />
+            <span>
+              <span style={{ ...FIELD_LABEL_STYLE, display: "block", marginBottom: 4 }}>
+                Include last conversion settings
+              </span>
+              <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: COLORS.muted }}>
+                mode={jobState.params.mode}, width={jobState.params.width}
+                {jobState.error ? ` — last attempt failed: "${jobState.error}"` : ""}
+              </span>
+            </span>
+          </label>
+        </div>
+      )}
+
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 24 }}>
         <button
           type="submit"
           disabled={tooShort || status === "sending"}
