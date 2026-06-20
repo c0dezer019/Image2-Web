@@ -134,6 +134,12 @@ export function FeedbackForm() {
         }}
       />
 
+      {tooShort && text.length > 0 && (
+        <div style={{ marginTop: 8, fontFamily: FONT_MONO, fontSize: 11, color: COLORS.muted }}>
+          {MIN_LENGTH - text.trim().length} more character{MIN_LENGTH - text.trim().length === 1 ? "" : "s"} needed
+        </div>
+      )}
+
       <div style={{ marginTop: 20 }}>
         <div style={FIELD_LABEL_STYLE}>Browser</div>
         <div style={{ fontFamily: FONT_MONO, fontSize: 13, color: COLORS.text }}>
