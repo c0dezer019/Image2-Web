@@ -280,6 +280,10 @@ export default function Home() {
     <div style={{ minHeight: "100vh", background: COLORS.bg, color: COLORS.text, position: "relative", overflow: "hidden" }}>
       <style>{`
         @media (max-width: 1080px) { .cli-gutter { display: none !important; } }
+        @media (max-width: 760px) {
+          .section-controls { order: 3; }
+          .section-output { order: 2; }
+        }
       `}</style>
       <Link
         href="/download"
@@ -320,7 +324,7 @@ export default function Home() {
           background: `radial-gradient(120% 80% at 50% -10%, transparent 50%, ${COLORS.bg} 100%)`,
         }}
       />
-      <div style={{ position: "relative", zIndex: 2, maxWidth: 1000, margin: "0 auto", padding: "46px 40px 120px" }}>
+      <div style={{ position: "relative", zIndex: 2, maxWidth: 1000, margin: "0 auto", padding: "46px 40px 120px", display: "flex", flexDirection: "column" }}>
         <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: 54 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
             <div
@@ -375,76 +379,84 @@ export default function Home() {
           </p>
         </header>
 
-        <DropZone fileName={file?.name ?? null} onFile={handleFile} onError={setError} />
+        <div className="section-drop" style={{ order: 1 }}>
+          <DropZone fileName={file?.name ?? null} onFile={handleFile} onError={setError} />
+        </div>
 
-        <ControlsBar
-          mode={mode}
-          width={width}
-          contrast={contrast}
-          brightness={brightness}
-          sharpness={sharpness}
-          saturate={saturate}
-          minLum={minLum}
-          fontSize={fontSize}
-          palette={palette}
-          imgWidth={imgWidth}
-          imgHeight={imgHeight}
-          lockAspect={targetAspectRatio !== null}
-          targetAspectRatio={targetAspectRatio}
-          sourceAspectRatio={sourceAspectRatio}
-          bg={bg}
-          invert={invert}
-          blur={blur}
-          dense={dense}
-          monochrome={monochrome}
-          fontColor={fontColor}
-          hasFile={!!file}
-          analyzing={analyzing}
-          optimizing={optimizing}
-          onAuto={handleAuto}
-          onWidthChange={(n) => {
-            if (!Number.isFinite(n)) return;
-            setWidth(Math.max(1, Math.round(n)));
-          }}
-          onContrastChange={setContrast}
-          onBrightnessChange={setBrightness}
-          onSharpnessChange={setSharpness}
-          onSaturateChange={setSaturate}
-          onMinLumChange={setMinLum}
-          onFontSizeChange={handleFontSizeChange}
-          onPaletteChange={setPalette}
-          onImgWidthChange={handleImgWidthChange}
-          onImgHeightChange={handleImgHeightChange}
-          onLockAspectChange={handleLockAspectChange}
-          onAspectPresetChange={handleAspectPresetChange}
-          onBgChange={setBg}
-          onInvertChange={setInvert}
-          onBlurChange={handleBlurChange}
-          onDenseChange={setDense}
-          onMonochromeChange={setMonochrome}
-          onFontColorChange={setFontColor}
-        />
-
-        <OutputHeader
-          mode={mode}
-          onModeChange={setMode}
-          onCopy={handleCopy}
-          onDownloadTxt={handleDownloadTxt}
-          onDownloadPng={handleDownloadPng}
-          copied={copied}
-          hasOutput={!!result}
-        />
-
-        <OutputCanvas ref={canvasRef} hasOutput={!!result} errorMessage={error} />
-        {crashPayload && (
-          <CrashReportBanner
-            payload={crashPayload}
-            onDismiss={() => setCrashPayload(null)}
+        <div className="section-controls" style={{ order: 2 }}>
+          <ControlsBar
+            mode={mode}
+            width={width}
+            contrast={contrast}
+            brightness={brightness}
+            sharpness={sharpness}
+            saturate={saturate}
+            minLum={minLum}
+            fontSize={fontSize}
+            palette={palette}
+            imgWidth={imgWidth}
+            imgHeight={imgHeight}
+            lockAspect={targetAspectRatio !== null}
+            targetAspectRatio={targetAspectRatio}
+            sourceAspectRatio={sourceAspectRatio}
+            bg={bg}
+            invert={invert}
+            blur={blur}
+            dense={dense}
+            monochrome={monochrome}
+            fontColor={fontColor}
+            hasFile={!!file}
+            analyzing={analyzing}
+            optimizing={optimizing}
+            onAuto={handleAuto}
+            onWidthChange={(n) => {
+              if (!Number.isFinite(n)) return;
+              setWidth(Math.max(1, Math.round(n)));
+            }}
+            onContrastChange={setContrast}
+            onBrightnessChange={setBrightness}
+            onSharpnessChange={setSharpness}
+            onSaturateChange={setSaturate}
+            onMinLumChange={setMinLum}
+            onFontSizeChange={handleFontSizeChange}
+            onPaletteChange={setPalette}
+            onImgWidthChange={handleImgWidthChange}
+            onImgHeightChange={handleImgHeightChange}
+            onLockAspectChange={handleLockAspectChange}
+            onAspectPresetChange={handleAspectPresetChange}
+            onBgChange={setBg}
+            onInvertChange={setInvert}
+            onBlurChange={handleBlurChange}
+            onDenseChange={setDense}
+            onMonochromeChange={setMonochrome}
+            onFontColorChange={setFontColor}
           />
-        )}
+        </div>
 
-        <VersionFooter />
-        <Footer />
+        <div className="section-output" style={{ order: 3 }}>
+          <OutputHeader
+            mode={mode}
+            onModeChange={setMode}
+            onCopy={handleCopy}
+            onDownloadTxt={handleDownloadTxt}
+            onDownloadPng={handleDownloadPng}
+            copied={copied}
+            hasOutput={!!result}
+          />
+
+          <OutputCanvas ref={canvasRef} hasOutput={!!result} errorMessage={error} />
+          {crashPayload && (
+            <CrashReportBanner
+              payload={crashPayload}
+              onDismiss={() => setCrashPayload(null)}
+            />
+          )}
+        </div>
+
+        <div style={{ order: 4 }}>
+          <VersionFooter />
+          <Footer />
+        </div>
       </div>
     </div>
   );
