@@ -40,16 +40,7 @@ export const OutputCanvas = forwardRef<HTMLCanvasElement, OutputCanvasProps>(
             {errorMessage}
           </div>
         ) : hasOutput ? (
-          <canvas
-            ref={ref}
-            style={{
-              display: "block",
-              width: "100%",
-              height: "auto",
-              maxWidth: "100%",
-              minWidth: 0,
-            }}
-          />
+          <canvas ref={ref} style={{ display: "block", imageRendering: "pixelated" }} />
         ) : (
           <div style={{ textAlign: "center" }}>
             <pre
