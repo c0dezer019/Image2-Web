@@ -57,12 +57,10 @@ if not LOCAL_MODE:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://image2-web-seven.vercel.app",
-        "https://image2.theappfoundry.tech",
-        "https://image2-web.theappfoundry.tech",
+        "https://image2.automatedfalls.com",
         "http://localhost:3000",
     ],
-    allow_origin_regex=r"https://image2-[a-z0-9-]+-the-app-foundry\.vercel\.app",
+    allow_origin_regex=r"https://image2\.automatedfalls\.com",
     allow_methods=["*"],
     allow_headers=["*"],
 )

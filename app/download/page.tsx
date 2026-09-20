@@ -4,8 +4,6 @@ import { Footer } from "@/components/Footer";
 import { COLORS, FONT_MONO } from "@/lib/theme";
 import type { ReleaseAssets } from "@/lib/detect-platform";
 
-export const revalidate = 3600;
-
 const FALLBACK_ASSETS: ReleaseAssets = {
   windows:
     "https://github.com/c0dezer019/image2/releases/download/v1.2.2b/img2-1.2.2-windows-x86_64.exe",
@@ -25,7 +23,7 @@ async function fetchRelease(): Promise<{ tag: string; assets: ReleaseAssets }> {
     const res = await fetch(
       "https://api.github.com/repos/c0dezer019/image2/releases/latest",
       {
-        next: { revalidate: 3600 },
+        cache: "force-cache",
         headers: { Accept: "application/vnd.github+json" },
       }
     );

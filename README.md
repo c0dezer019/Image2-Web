@@ -65,10 +65,18 @@ docs/        Deployment notes
 ```bash
 pnpm dev      # dev server
 pnpm build    # production build
+pnpm build:static # static export into out/
 pnpm start    # run production build
 pnpm lint     # eslint
 pnpm test     # vitest
 ```
+
+`pnpm build:static` creates a fully static frontend in `out/` for hosting on
+any static web server. The conversion service must still be deployed
+separately and configured with `NEXT_PUBLIC_IMAGE2_SERVER_URL`. The feedback
+and crash-report POST endpoints are server-only and are not included in the
+static artifact; use the normal `pnpm build` standalone deployment when those
+endpoints are required.
 
 ## Running Locally via Docker
 
