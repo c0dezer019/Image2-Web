@@ -14,7 +14,7 @@ export default function EulaPage() {
       <section style={SECTION_STYLE}>
         <div style={SECTION_LABEL_STYLE}>01 / License Grant</div>
         <p style={P_STYLE}>
-          The App Foundry grants you a limited, non-exclusive, non-transferable,
+          Astermark grants you a limited, non-exclusive, non-transferable,
           revocable license to access and use Image2, including for producing
           outputs used in commercial projects, subject to these Terms. You may
           not resell, sublicense, or provide the Service as a component of your
@@ -35,7 +35,7 @@ export default function EulaPage() {
       <section style={SECTION_STYLE}>
         <div style={SECTION_LABEL_STYLE}>03 / Ownership</div>
         <p style={P_STYLE}>
-          The App Foundry owns the Image2 application, including its design, code, and
+          Astermark owns the Image2 application, including its design, code, and
           branding. You retain all rights to the images you upload and to the
           ASCII/ANSI output Image2 generates from them. We claim no ownership over your
           content or output.

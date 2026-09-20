@@ -80,6 +80,7 @@ def health() -> dict[str, Any]:
 
 
 if LOCAL_MODE:
+
     @app.post("/upload")
     def upload(file: UploadFile = File(...)) -> dict[str, Any]:
         session_id = str(uuid.uuid4())
@@ -89,9 +90,7 @@ if LOCAL_MODE:
                 img.verify()
         except Exception:
             os.remove(path)
-            raise HTTPException(
-                status_code=422, detail="Could not read image file"
-            )
+            raise HTTPException(status_code=422, detail="Could not read image file")
         _upload_store[session_id] = path
         return {"session_id": session_id, "expires_in": 3600}
 

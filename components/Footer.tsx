@@ -25,7 +25,7 @@ export function Footer() {
         color: COLORS.muted,
       }}
     >
-      <span>The App Foundry</span>
+      <span>Astermark</span>
       <div style={{ display: "flex", gap: 20 }}>
         <Link href="/feedback" style={LINK_STYLE}>
           Feedback

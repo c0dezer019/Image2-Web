@@ -142,7 +142,7 @@ export default async function DownloadPage() {
               color: COLORS.muted,
             }}
           >
-            The App Foundry
+            Astermark
           </div>
         </nav>
 

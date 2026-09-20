@@ -72,7 +72,7 @@ export function LegalPage({ title, children }: LegalPageProps) {
             </div>
           </Link>
           <div style={{ fontFamily: FONT_MONO, fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: COLORS.muted }}>
-            The App Foundry
+            Astermark
           </div>
         </nav>
 

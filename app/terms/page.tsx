@@ -61,7 +61,7 @@ export default function TermsPage() {
       <section style={SECTION_STYLE}>
         <div style={SECTION_LABEL_STYLE}>05 / Limitation of Liability</div>
         <p style={P_STYLE}>
-          To the maximum extent permitted by law, The App Foundry shall not be liable
+          To the maximum extent permitted by law, Astermark shall not be liable
           for any indirect, incidental, special, consequential, or punitive damages, or
           any loss of data, arising from your use of, or inability to use, the Service.
         </p>
